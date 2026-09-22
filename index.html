@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Florida's Green Thumb — Turn Sheets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#E9ECEA; --surface:#FFFFFF; --surface-2:#F3F5F4;
+  --ink:#161A19; --ink-2:#414A48; --muted:#6B7472; --line:#CDD4D1; --line-2:#DEE3E1;
+  --brand:#0F766E; --brand-soft:#D9EEEB; --flag:#9A5B12;
+  --shadow:0 1px 2px rgba(22,26,25,.06),0 8px 22px -10px rgba(22,26,25,.20);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#121615; --surface:#1B211F; --surface-2:#222927;
+  --ink:#ECF0EE; --ink-2:#C2CAC7; --muted:#8C9793; --line:#333C39; --line-2:#2A312F;
+  --brand:#4DD6C5; --brand-soft:#123430; --flag:#E8B871;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -12px rgba(0,0,0,.7);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+h1,h2{font-family:"Barlow Semi Condensed",Barlow,sans-serif;margin:0;text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+/* header */
+.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:640px;margin:0 auto;padding:16px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand .mark{width:40px;height:40px;flex:0 0 auto;border-radius:10px;background:var(--brand);
+  display:grid;place-items:center;color:#fff}
+.brand .mark svg{width:23px;height:23px}
+.brand h1{font-size:19px;font-weight:700;line-height:1.1}
+.brand .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+
+/* login */
+.gate{display:grid;place-items:center;min-height:70vh;padding:24px 16px}
+.gate-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:16px;padding:24px 22px;box-shadow:var(--shadow);text-align:center}
+.gate-card .mark{width:52px;height:52px;margin:0 auto 14px;border-radius:13px;background:var(--brand);
+  display:grid;place-items:center;color:#fff}
+.gate-card .mark svg{width:28px;height:28px}
+.gate-card h2{font-size:20px;font-weight:700}
+.gate-card p{margin:6px 0 18px;font-size:14px;color:var(--muted)}
+.gate-card input{display:block;width:100%;min-height:48px;padding:12px 14px;font:inherit;font-size:16px;
+  text-align:center;letter-spacing:.02em;color:var(--ink);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px}
+.gate-card input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.gate-card button{margin-top:12px;width:100%;min-height:48px;border:0;border-radius:10px;
+  background:var(--brand);color:#fff;font-family:"Barlow Semi Condensed",sans-serif;
+  font-weight:700;font-size:16px;letter-spacing:.02em}
+.gate-err{margin-top:12px;font-size:13.5px;color:var(--flag);min-height:18px}
+
+/* list */
+main{padding:18px 0 40px}
+.lead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px 12px}
+.lead h2{font-size:15px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.lead .count{font-size:13px;color:var(--muted)}
+.card{display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:14px;padding:15px 16px;margin-bottom:11px;
+  box-shadow:var(--shadow);transition:transform .12s}
+.card:active{transform:scale(.99)}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.addr{font-family:"Barlow Semi Condensed",sans-serif;font-size:19px;font-weight:700;line-height:1.15}
+.city{font-size:13px;color:var(--muted);margin-top:1px}
+.go{flex:0 0 auto;color:var(--brand);font-weight:700;font-family:"Barlow Semi Condensed",sans-serif;
+  font-size:14px;display:flex;align-items:center;gap:3px;padding-top:3px}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.chip{font-size:12.5px;padding:4px 9px;border-radius:999px;background:var(--surface-2);
+  border:1px solid var(--line-2);color:var(--ink-2)}
+.chip.turn{font-family:"IBM Plex Mono",monospace}
+.chip.total{font-family:"IBM Plex Mono",monospace;color:var(--brand);border-color:transparent;background:var(--brand-soft)}
+.bar{margin-top:13px;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line-2)}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:99px;width:0;transition:width .4s}
+.prog{display:flex;align-items:center;justify-content:space-between;margin-top:7px;font-size:13px;color:var(--ink-2)}
+.prog .mono{font-weight:600}
+.prog .live{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12px}
+.prog .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.prog .live.on{color:var(--brand)}
+.prog .live.on::before{background:var(--brand)}
+.foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 4px}
+.foot button{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app" hidden>
+  <div class="top"><div class="top-in"><div class="brand">
+    <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M12 9c0-3 2-5 6-5 0 4-3 5-6 5zM12 12C12 9 9 7 5 7c0 4 4 5 7 5z"/></svg></span>
+    <div><h1>Florida&rsquo;s Green Thumb</h1><div class="sub">Turn sheets &middot; crew hub</div></div>
+  </div></div></div>
+  <main class="wrap">
+    <div class="lead"><h2>Active turn sheets</h2><span class="count" id="count"></span></div>
+    <div id="list"></div>
+  </main>
+  <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Lock</button></div>
+</div>
+
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M12 9c0-3 2-5 6-5 0 4-3 5-6 5zM12 12C12 9 9 7 5 7c0 4 4 5 7 5z"/></svg></span>
+    <h2>Florida&rsquo;s Green Thumb</h2>
+    <p>Crew turn sheets. Enter the crew code to see active jobs.</p>
+    <form id="gform"><input id="pw" type="password" inputmode="text" autocomplete="current-password" placeholder="Crew code" aria-label="Crew code">
+    <button type="submit">Open</button></form>
+    <div class="gate-err" id="gerr" role="alert"></div>
+  </div>
+</div>
+
+<script>
+var SCOPES = [{"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "https://floridasgreenthumb-png.github.io/bridlewood-turn-sheet/"}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "https://floridasgreenthumb-png.github.io/hi-vista-turn-sheet/"}];
+var HUB = {"pw": "greenthumb", "backendUrl": "", "backendKey": ""};   /* {pw, backendUrl, backendKey} */
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* light gate: keeps casual visitors out of a public URL. Not bank security —
+   the code lives in the page. Real privacy would need a server login. */
+function unlock(){
+  try{ sessionStorage.setItem("fgt.in","1"); }catch(e){}
+  document.getElementById("gate").hidden = true;
+  var app = document.getElementById("app"); app.hidden = false;
+  render(); poll();
+}
+document.getElementById("gform").addEventListener("submit",function(e){
+  e.preventDefault();
+  var v = document.getElementById("pw").value.trim().toLowerCase();
+  if(v === HUB.pw){ unlock(); }
+  else { document.getElementById("gerr").textContent = "That code didn't match. Ask Steve."; }
+});
+document.getElementById("out").addEventListener("click",function(){
+  try{ sessionStorage.removeItem("fgt.in"); }catch(e){}
+  location.reload();
+});
+try{ if(sessionStorage.getItem("fgt.in") === "1") unlock(); }catch(e){}
+
+function card(s){
+  return '<a class="card" href="'+esc(s.liveUrl)+'" data-turn="'+esc(s.turn)+'">'
+    + '<div class="card-h"><div><div class="addr">'+esc(s.h1)+'</div>'
+    + '<div class="city">'+esc(s.city)+'</div></div>'
+    + '<span class="go">Open &rarr;</span></div>'
+    + '<div class="meta"><span class="chip turn">Turn '+esc(s.turn)+'</span>'
+    + '<span class="chip">'+s.tasks+' task'+(s.tasks===1?"":"s")+'</span>'
+    + '<span class="chip total">'+money(s.total)+'</span></div>'
+    + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
+    + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
+    + '<span class="live" data-live="'+esc(s.turn)+'">not connected</span></div>'
+    + '</a>';
+}
+function render(){
+  document.getElementById("count").textContent = SCOPES.length + (SCOPES.length===1?" job":" jobs");
+  document.getElementById("list").innerHTML = SCOPES.map(card).join("");
+}
+
+/* live progress: ask Steve's backend for done-counts + photo counts */
+function poll(){
+  if(!HUB.backendUrl) return;
+  fetch(HUB.backendUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({op:"summary",k:HUB.backendKey})})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(!j || !j.ok) return;
+      SCOPES.forEach(function(s){
+        var d = (j.scopes && j.scopes[s.turn]) || null;
+        var done = d ? d.done : 0, pct = s.tasks ? Math.round(done/s.tasks*100) : 0;
+        var bar = document.querySelector('[data-bar="'+s.turn+'"]');
+        var txt = document.querySelector('[data-done="'+s.turn+'"]');
+        var live = document.querySelector('[data-live="'+s.turn+'"]');
+        if(bar) bar.style.width = pct+"%";
+        if(txt) txt.innerHTML = '<span class="mono">'+done+'/'+s.tasks+'</span> done'
+          + (d && d.photos ? ' &middot; <span class="mono">'+d.photos+'</span> photos' : '');
+        if(live){ live.textContent = "live"; live.className = "live on"; }
+      });
+    }).catch(function(){});
+}
+if(HUB.backendUrl) setInterval(function(){ if(!document.getElementById("app").hidden) poll(); }, 20000);
+</script>
+</body>
+</html>
