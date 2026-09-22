@@ -85,6 +85,8 @@ main{padding:18px 0 40px}
 .prog .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
 .prog .live.on{color:var(--brand)}
 .prog .live.on::before{background:var(--brand)}
+.rolebadge{display:inline-block;margin:0 2px 10px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:3px 11px}
+.rolebadge:empty{display:none}
 .foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 4px}
 .foot button{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:12px}
 </style>
@@ -97,6 +99,7 @@ main{padding:18px 0 40px}
   </div></div></div>
   <main class="wrap">
     <div class="lead"><h2>Active turn sheets</h2><span class="count" id="count"></span></div>
+    <div class="rolebadge" id="roleBadge"></div>
     <div id="list"></div>
   </main>
   <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Lock</button></div>
@@ -114,34 +117,45 @@ main{padding:18px 0 40px}
 </div>
 
 <script>
-var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "tasks": 37, "total": 1976.9, "liveUrl": "https://floridasgreenthumb-png.github.io/geese-trail-turn-sheet/"}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "https://floridasgreenthumb-png.github.io/bridlewood-turn-sheet/"}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "https://floridasgreenthumb-png.github.io/hi-vista-turn-sheet/"}];
-var HUB = {"pw": "greenthumb", "backendUrl": "https://script.google.com/macros/s/AKfycbwnerBzAyH_hBZHs1_lb4MOatDtBebBKgDxLgZ-MxSPZ8LbWkAMNoZmJkfMmZsII52i5Q/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0"};   /* {pw, backendUrl, backendKey} */
+var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "tasks": 37, "total": 1976.9, "liveUrl": "https://floridasgreenthumb-png.github.io/geese-trail-turn-sheet/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "https://floridasgreenthumb-png.github.io/bridlewood-turn-sheet/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "https://floridasgreenthumb-png.github.io/hi-vista-turn-sheet/", "hasCrew": false}];
+var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "backendUrl": "https://script.google.com/macros/s/AKfycbwnerBzAyH_hBZHs1_lb4MOatDtBebBKgDxLgZ-MxSPZ8LbWkAMNoZmJkfMmZsII52i5Q/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 /* light gate: keeps casual visitors out of a public URL. Not bank security —
    the code lives in the page. Real privacy would need a server login. */
-function unlock(){
-  try{ sessionStorage.setItem("fgt.in","1"); }catch(e){}
+/* two codes: crew (opens the no-price pages) and manager (opens the priced pages) */
+var ROLE = "crew";
+function unlock(role){
+  ROLE = role;
+  try{ sessionStorage.setItem("fgt.in", role); }catch(e){}
   document.getElementById("gate").hidden = true;
   var app = document.getElementById("app"); app.hidden = false;
+  var b = document.getElementById("roleBadge");
+  if(b) b.textContent = role === "manager" ? "Manager — prices shown" : "Crew view";
   render(); poll();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
   e.preventDefault();
   var v = document.getElementById("pw").value.trim().toLowerCase();
-  if(v === HUB.pw){ unlock(); }
+  if(HUB.managerPw && v === HUB.managerPw){ unlock("manager"); }
+  else if(v === HUB.crewPw){ unlock("crew"); }
   else { document.getElementById("gerr").textContent = "That code didn't match. Ask Steve."; }
 });
 document.getElementById("out").addEventListener("click",function(){
   try{ sessionStorage.removeItem("fgt.in"); }catch(e){}
   location.reload();
 });
-try{ if(sessionStorage.getItem("fgt.in") === "1") unlock(); }catch(e){}
+try{ var r = sessionStorage.getItem("fgt.in"); if(r === "manager" || r === "crew") unlock(r); }catch(e){}
 
+function jobUrl(s){
+  var u = s.liveUrl || "";
+  if(ROLE === "crew"){ if(u.slice(-1) !== "/") u += "/"; u += "crew/"; }
+  return u;
+}
 function card(s){
-  return '<a class="card" href="'+esc(s.liveUrl)+'" data-turn="'+esc(s.turn)+'">'
+  return '<a class="card" href="'+esc(jobUrl(s))+'" data-turn="'+esc(s.turn)+'">'
     + '<div class="card-h"><div><div class="addr">'+esc(s.h1)+'</div>'
     + '<div class="city">'+esc(s.city)+'</div></div>'
     + '<span class="go">Open &rarr;</span></div>'
@@ -154,8 +168,12 @@ function card(s){
     + '</a>';
 }
 function render(){
-  document.getElementById("count").textContent = SCOPES.length + (SCOPES.length===1?" job":" jobs");
-  document.getElementById("list").innerHTML = SCOPES.map(card).join("");
+  /* crew only sees jobs that have a no-price version built */
+  var list = ROLE === "crew" ? SCOPES.filter(function(s){ return s.hasCrew; }) : SCOPES;
+  document.getElementById("count").textContent = list.length + (list.length===1?" job":" jobs");
+  document.getElementById("list").innerHTML = list.length
+    ? list.map(card).join("")
+    : '<div class="foot" style="padding:30px 16px">No jobs to show yet.</div>';
 }
 
 /* live progress: ask Steve's backend for done-counts + photo counts */
