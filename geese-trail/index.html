@@ -624,6 +624,67 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .complete-scope:active{transform:scale(.99)}
 /*CAM:CSS-END*/
 
+/*RCP:CSS-BEGIN*/
+/* ---------- receipts & payout (manager only) ---------- */
+.receipts-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;position:relative;
+  margin:8px 0 2px;padding:12px;border:1px solid var(--line);border-radius:11px;
+  background:var(--surface);color:var(--ink);
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15.5px;letter-spacing:.01em;
+}
+.receipts-btn svg{width:18px;height:18px;flex:0 0 auto;color:var(--brand)}
+.receipts-btn[hidden]{display:none}
+.receipts-btn:active{transform:scale(.99)}
+.rcp-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;display:inline-grid;place-items:center}
+
+/* payout summary */
+.co-card.pay{background:var(--surface)}
+.pay-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:5px 0;font-size:15px;color:var(--ink-2)}
+.pay-row b{font-size:16px;color:var(--ink)}
+.pay-row .neg{color:var(--flag)}
+.pay-row.net{border-top:1px solid var(--line-2);margin-top:4px;padding-top:10px}
+.pay-row.net span{font-weight:600;color:var(--ink)}
+.pay-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.pay-cut{border-radius:12px;padding:12px 14px;text-align:center}
+.pay-cut.mgr{background:var(--brand-soft);border:1px solid transparent}
+.pay-cut.own{background:var(--surface-2);border:1px solid var(--line-2)}
+.pay-cut .k{font-size:12.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.pay-cut.mgr .k{color:var(--brand)}
+.pay-cut .v{font-size:22px;font-weight:700;margin-top:3px;color:var(--ink)}
+.pay-note{margin:12px 2px 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+
+/* add form */
+.rcp-form{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+.rcp-l{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.rcp-dollar{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:48px;min-width:150px}
+.rcp-dollar>span{color:var(--muted);font-size:16px}
+.rcp-dollar input{border:0;background:transparent;font:inherit;font-size:18px;font-family:"IBM Plex Mono",monospace;width:100%;color:var(--ink);text-align:right}
+.rcp-dollar input:focus{outline:none}
+.rcp-in{min-height:46px;padding:11px 13px;font:inherit;font-size:15px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+.rcp-in:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.rcp-save{margin-top:2px}
+
+/* pending preview */
+.rcp-prev{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.rcp-prev img{width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid var(--line-2)}
+.rcp-pdf{display:flex;align-items:center;gap:8px;color:var(--brand);font-weight:700}
+.rcp-pdf svg{width:34px;height:34px}
+
+/* list */
+.rcp-list{display:flex;flex-direction:column;gap:10px}
+.rcp-row{display:grid;grid-template-columns:56px 1fr auto;gap:11px;align-items:center}
+.rcp-thumb{padding:0;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;background:var(--surface-2);width:56px;height:56px}
+.rcp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.rcp-ic{width:56px;height:56px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-weight:700;color:var(--muted)}
+.rcp-ic.pdf{color:var(--brand);font-size:12px}
+.rcp-amt{font-size:17px;font-weight:700;color:var(--ink)}
+.rcp-sub{font-size:13px;color:var(--ink-2);margin-top:1px;overflow-wrap:anywhere}
+.rcp-by{font-size:11.5px;color:var(--muted);margin-top:1px}
+.rcp-x{padding:8px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);background:transparent}
+/*RCP:CSS-END*/
+
 /* ---------- confirm ---------- */
 .ask{
   position:fixed;inset:0;z-index:200;background:rgba(10,13,12,.55);
@@ -715,6 +776,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <button class="complete-scope" id="completeScope" type="button">
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10.5 3.5 3.5L16 5"/></svg>
     Complete Scope &amp; send photos
+  </button>
+  <button class="receipts-btn" id="receiptsOpen" type="button" hidden>
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17zM8 7h4M8 10h4"/></svg>
+    Receipts &amp; payout
   </button>
   <div class="legal">Scope total $1,976.90 &middot; Progress Tampa &middot; due Sep 17 &middot; 37 tasks (Landscaping &amp; pressure wash excluded)</div>
 </div>
@@ -2331,7 +2396,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20260923-163630";          // stamped in at publish time
+  var CAM_BUILD = "20260923-190140";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2369,6 +2434,267 @@ if(camOn()){
 })();
 /*UPD:JS-END*/
 
+/*RCP:JS-BEGIN*/
+/* ============================ RECEIPTS & PAYOUT ============================ */
+/* Manager-only. Log the supplies bought for a job — snap the paper receipt or
+   pick a file/PDF (e.g. one emailed by the supplier) — plus the dollar amount.
+   Shows the payout live: scope total − supplies, then the manager's cut and the
+   owner's share. Off entirely on the crew / view-only pages (no prices there). */
+var RCP_PCT = (typeof JOB !== "undefined" && typeof JOB.laborPct === "number") ? JOB.laborPct : 77.5;
+function rcpManager(){ return (typeof JOB !== "undefined") && JOB.scopeTotal > 0 && !(typeof VIEWONLY !== "undefined" && VIEWONLY); }
+function rcpOn(){ return typeof BACKEND_URL === "string" && !!BACKEND_URL; }
+function rcpName(){ try{ return localStorage.getItem("fgt.crewName") || ""; }catch(e){ return ""; } }
+
+var rcpDB = null, rcpItems = [], rcpRemote = {}, rcpBusy = false, rcpEl = null, rcpUrls = [], rcpPending = null;
+
+/* ---- the phone's receipt storage ---- */
+function rcpOpenDB(){
+  return new Promise(function(res){
+    try{
+      var r = indexedDB.open("turnsheet-receipts", 1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore("r", {keyPath:"id"}); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror = function(){ res(null); };
+    }catch(e){ res(null); }
+  });
+}
+function rcpTx(mode){ return rcpDB.transaction("r", mode).objectStore("r"); }
+function rcpPut(it){ return new Promise(function(res){ if(!rcpDB) return res(); try{ var q=rcpTx("readwrite").put(it); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
+function rcpDel(id){ return new Promise(function(res){ if(!rcpDB) return res(); try{ var q=rcpTx("readwrite").delete(id); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
+function rcpLoad(){ return new Promise(function(res){ if(!rcpDB) return res([]); try{ var q=rcpTx("readonly").getAll(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){res([]);} }); }
+
+/* ---- helpers ---- */
+function rcpB64(blob){ return new Promise(function(res, rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result).split(",")[1]); }; r.onerror=rej; r.readAsDataURL(blob); }); }
+function rcpThumb(blob){
+  return new Promise(function(res){
+    var url=URL.createObjectURL(blob), img=new Image();
+    img.onload=function(){
+      var w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1, 300/Math.max(w,h));
+      var c=document.createElement("canvas"); c.width=Math.round(w*k); c.height=Math.round(h*k);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+      try{ res(c.toDataURL("image/jpeg",0.6).split(",")[1]); }catch(e){ res(""); }
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); res(""); };
+    img.src=url;
+  });
+}
+function rcpAtSec(x){ return typeof x.at==="number" ? x.at : Math.floor(new Date(x.at).getTime()/1000); }
+function rcpSupplies(){
+  var seen={}, t=0;
+  rcpItems.forEach(function(i){ seen[i.id]=1; t += Number(i.amount)||0; });
+  Object.keys(rcpRemote).forEach(function(k){ if(!seen[k]) t += Number(rcpRemote[k].amount)||0; });
+  return Math.round(t*100)/100;
+}
+function rcpCount(){ var seen={}; rcpItems.forEach(function(i){seen[i.id]=1;}); var n=rcpItems.length; Object.keys(rcpRemote).forEach(function(k){ if(!seen[k]) n++; }); return n; }
+function rcpPayout(){
+  var total=Number(JOB.scopeTotal)||0, S=rcpSupplies();
+  var net=Math.round((total-S)*100)/100;
+  var mgr=Math.round(net*RCP_PCT)/100;
+  var own=Math.round((net*100 - mgr*100))/100;
+  return {total:total, supplies:S, net:net, mgr:mgr, own:own, pct:RCP_PCT};
+}
+
+/* ---- file inputs: camera + file/PDF ---- */
+var rcpCamIn = document.createElement("input"); rcpCamIn.type="file"; rcpCamIn.accept="image/*"; rcpCamIn.setAttribute("capture","environment"); rcpCamIn.hidden=true;
+var rcpFileIn = document.createElement("input"); rcpFileIn.type="file"; rcpFileIn.accept="image/*,application/pdf"; rcpFileIn.hidden=true;
+document.body.appendChild(rcpCamIn); document.body.appendChild(rcpFileIn);
+rcpCamIn.addEventListener("change", function(){ var f=rcpCamIn.files&&rcpCamIn.files[0]; rcpCamIn.value=""; if(f) rcpAttach(f); });
+rcpFileIn.addEventListener("change", function(){ var f=rcpFileIn.files&&rcpFileIn.files[0]; rcpFileIn.value=""; if(f) rcpAttach(f); });
+function rcpAttach(file){
+  var isPdf = /pdf/i.test(file.type) || /\.pdf$/i.test(file.name || "");
+  var finish = function(thumb){
+    rcpPending = { file:file, mime: isPdf?"application/pdf":"image/jpeg",
+      name: (file.name || ("receipt-" + Date.now() + (isPdf?".pdf":".jpg"))), thumb: thumb || "", isPdf: isPdf };
+    if(rcpEl) rcpPanel();
+  };
+  if(isPdf) finish(""); else rcpThumb(file).then(finish);
+}
+
+/* ---- add / upload / remove ---- */
+function rcpAddEntry(){
+  var amtEl=document.getElementById("rcpAmt");
+  var amount=parseFloat(String(amtEl && amtEl.value || "").replace(/[^0-9.]/g,""));
+  if(!(amount>0)) return;
+  var store=(document.getElementById("rcpStoreIn")||{}).value || "";
+  var note=(document.getElementById("rcpNoteIn")||{}).value || "";
+  var d=new Date(), id=d.getTime().toString(36)+Math.random().toString(36).slice(2,6);
+  var it={ id:id, turn:JOB.turn, at:d.toISOString(), amount:Math.round(amount*100)/100,
+    store:String(store).slice(0,60), note:String(note).slice(0,120),
+    name:(rcpPending&&rcpPending.name)||"", mime:(rcpPending&&rcpPending.mime)||"",
+    thumb:(rcpPending&&rcpPending.thumb)||"", blob:(rcpPending&&rcpPending.file)||null,
+    status:"waiting", by:rcpName() };
+  rcpItems.push(it); rcpPending=null;
+  rcpPut(it).then(function(){ rcpBtnUpd(); rcpPanel(); rcpPump(); });
+}
+function rcpPump(){
+  if(rcpBusy || !rcpOn() || navigator.onLine===false) return;
+  var next=rcpItems.filter(function(i){ return i.status==="waiting"; })[0];
+  if(!next) return; rcpBusy=true;
+  (next.blob ? rcpB64(next.blob) : Promise.resolve("")).then(function(data){
+    return api({op:"receipt", turn:JOB.turn, house:JOB.short, id:next.id, amount:next.amount,
+      store:next.store, note:next.note, by:next.by, at:rcpAtSec(next), data:data, mime:next.mime, name:next.name, thumb:next.thumb});
+  }).then(function(){ next.status="sent"; return rcpPut(next); })
+    .catch(function(){ next.status="failed"; return rcpPut(next); })
+    .then(function(){ rcpBusy=false; rcpBtnUpd(); if(rcpItems.some(function(i){return i.status==="waiting";})) setTimeout(rcpPump,300); });
+}
+function rcpRetry(){ rcpItems.forEach(function(i){ if(i.status==="failed") i.status="waiting"; }); rcpPump(); }
+function rcpRemove(it){
+  ask("Delete this receipt?", it.amount ? "This removes $" + it.amount.toFixed(2) + " from the supplies total." : "Remove this receipt.",
+    "Delete", function(){
+      var id=it.id;
+      rcpItems=rcpItems.filter(function(i){ return i.id!==id; });
+      delete rcpRemote[id];
+      rcpDel(id);
+      if(rcpOn()) api({op:"receiptdel", turn:JOB.turn, id:id}).catch(function(){});
+      rcpBtnUpd(); rcpPanel();
+    });
+}
+
+/* ---- live pull ---- */
+function rcpPull(){
+  if(!rcpManager() || !rcpOn() || document.hidden || navigator.onLine===false) return;
+  api({op:"receipts", turn:JOB.turn}).then(function(r){
+    if(!r || !r.items) return;
+    var mine={}; rcpItems.forEach(function(i){ mine[i.id]=1; });
+    var next={}; r.items.forEach(function(e){ if(!mine[e.id]) next[e.id]=e; });
+    rcpRemote=next; rcpBtnUpd(); if(rcpEl) rcpPanel();
+  }).catch(function(){});
+}
+
+/* ---- the bottom-bar button ---- */
+function rcpBtnUpd(){
+  var b=document.getElementById("receiptsOpen"); if(!b) return;
+  if(!rcpManager()){ b.hidden=true; return; }
+  b.hidden=false;
+  var n=rcpCount();
+  b.querySelector(".rcp-badge") && b.querySelector(".rcp-badge").remove();
+  if(n){ var s=document.createElement("span"); s.className="rcp-badge"; s.textContent=n; b.appendChild(s); }
+}
+
+/* ---- panel ---- */
+function rcpOpen(){
+  if(rcpEl) return;
+  rcpEl=document.createElement("div");
+  rcpEl.className="co"; rcpEl.setAttribute("role","dialog"); rcpEl.setAttribute("aria-modal","true");
+  rcpEl.innerHTML='<div class="co-top"><button class="co-back" data-rc="close" aria-label="Back to the scope">&larr; Scope</button>'
+    + '<div class="co-title"><span>Receipts &amp; Payout</span><small>'+esc(JOB.short)+'</small></div></div><div class="co-body"></div>';
+  document.body.appendChild(rcpEl);
+  document.body.style.overflow="hidden";
+  rcpEl.addEventListener("click", rcpClick);
+  rcpPanel();
+  rcpPull();
+}
+function rcpClose(){
+  if(!rcpEl) return;
+  rcpUrls.forEach(function(u){ URL.revokeObjectURL(u); }); rcpUrls=[];
+  rcpEl.remove(); rcpEl=null; document.body.style.overflow="";
+}
+function rcpPanel(){
+  if(!rcpEl) return;
+  rcpUrls.forEach(function(u){ URL.revokeObjectURL(u); }); rcpUrls=[];
+  var p=rcpPayout();
+  var h='<section class="co-card pay">'
+    + '<div class="pay-row"><span>Scope total</span><b class="mono">'+money(p.total)+'</b></div>'
+    + '<div class="pay-row"><span>Supplies (receipts)</span><b class="mono neg">&minus;'+money(p.supplies)+'</b></div>'
+    + '<div class="pay-row net"><span>Net for split</span><b class="mono">'+money(p.net)+'</b></div>'
+    + '<div class="pay-split"><div class="pay-cut mgr"><div class="k">Manager &middot; '+p.pct+'%</div><div class="v mono">'+money(p.mgr)+'</div></div>'
+    + '<div class="pay-cut own"><div class="k">Owner &middot; '+Math.round((100-p.pct)*10)/10+'%</div><div class="v mono">'+money(p.own)+'</div></div></div>'
+    + (p.supplies ? '<p class="pay-note">Owner is also paid back the '+money(p.supplies)+' in supplies fronted for this job.</p>' : '')
+    + '</section>';
+
+  /* add-a-receipt card */
+  h+='<section class="co-card"><h3 class="cam-h">Add a receipt</h3>';
+  if(rcpPending){
+    h+='<div class="rcp-prev">'+(rcpPending.isPdf
+        ? '<div class="rcp-pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg><span>PDF ready</span></div>'
+        : '<img src="data:image/jpeg;base64,'+rcpPending.thumb+'" alt="Receipt preview">')
+      + '<button class="btn" data-rc="clearpend">Remove</button></div>';
+  } else {
+    h+='<div class="co-acts"><button class="btn primary" data-rc="cam">Take photo</button>'
+      + '<button class="btn" data-rc="file">Choose file / PDF</button></div>';
+  }
+  h+='<div class="rcp-form">'
+    + '<label class="rcp-l">Amount<span class="rcp-dollar"><span>$</span>'
+    + '<input id="rcpAmt" type="text" inputmode="decimal" placeholder="0.00" value=""></span></label>'
+    + '<input id="rcpStoreIn" class="rcp-in" type="text" placeholder="Store (Home Depot, Lowe’s…)">'
+    + '<input id="rcpNoteIn" class="rcp-in" type="text" placeholder="Note (what it was for)">'
+    + '<button class="btn primary rcp-save" data-rc="save">Add receipt</button></div>';
+  h+='</section>';
+
+  /* list */
+  var combined=rcpItems.map(function(it){ return {kind:"local", it:it}; })
+    .concat(Object.keys(rcpRemote).map(function(k){ return {kind:"remote", it:rcpRemote[k]}; }));
+  combined.sort(function(a,b){ return rcpAtSec(b.it)-rcpAtSec(a.it); });
+  if(combined.length){
+    h+='<section class="co-card"><h3 class="cam-h">Receipts &middot; '+combined.length+'</h3><div class="rcp-list">';
+    combined.forEach(function(row){
+      var it=row.it, isPdf=(it.mime==="application/pdf");
+      var thumb = it.thumb ? '<img src="data:image/jpeg;base64,'+it.thumb+'" alt="Receipt">'
+        : (isPdf ? '<div class="rcp-ic pdf">PDF</div>' : '<div class="rcp-ic">$</div>');
+      var st = row.kind==="local" ? (it.status==="sent"?"saved":(it.status==="failed"?"not sent":"saving…")) : "";
+      h+='<div class="rcp-row"><button class="rcp-thumb" data-rc="view" data-id="'+esc(it.id)+'" data-pdf="'+(isPdf?1:0)+'">'+thumb+'</button>'
+        + '<div class="rcp-meta"><div class="rcp-amt mono">'+money(Number(it.amount)||0)+'</div>'
+        + '<div class="rcp-sub">'+(it.store?esc(it.store):"")+(it.store&&it.note?" · ":"")+(it.note?esc(it.note):"")+'</div>'
+        + (it.by?'<div class="rcp-by">by '+esc(it.by)+(st?" · "+st:"")+'</div>':(st?'<div class="rcp-by">'+st+'</div>':''))+'</div>'
+        + (row.kind==="local"?'<button class="rcp-x" data-rc="del" data-id="'+esc(it.id)+'">Delete</button>':'')+'</div>';
+    });
+    h+='</div></section>';
+  } else {
+    h+='<p class="cam-empty">No receipts yet. Add one above as you buy supplies.</p>';
+  }
+  rcpEl.querySelector(".co-body").innerHTML=h;
+  var amt=document.getElementById("rcpAmt"); if(amt && rcpPending) amt.focus();
+}
+function rcpClick(e){
+  var b=e.target.closest("[data-rc]"); if(!b) return;
+  var a=b.dataset.rc;
+  if(a==="close") return rcpClose();
+  if(a==="cam") return rcpCamIn.click();
+  if(a==="file") return rcpFileIn.click();
+  if(a==="clearpend"){ rcpPending=null; return rcpPanel(); }
+  if(a==="save") return rcpAddEntry();
+  if(a==="view") return rcpView(b.dataset.id, b.dataset.pdf==="1");
+  if(a==="del"){ var it=rcpItems.filter(function(i){return i.id===b.dataset.id;})[0]; if(it) rcpRemove(it); return; }
+}
+
+/* ---- view one receipt full-size ---- */
+var rcpViewEl=null, rcpViewUrl=null;
+function rcpView(id, isPdf){
+  var local=rcpItems.filter(function(i){return i.id===id;})[0];
+  rcpViewClose();
+  var showImg=function(src){
+    rcpViewEl=document.createElement("div"); rcpViewEl.className="cam-prev cam-view";
+    rcpViewEl.innerHTML='<div class="cam-view-top"><button type="button" class="cam-view-x" data-rv="close">&larr; Receipts</button></div>'
+      + '<div class="cam-prev-img"><img src="'+src+'" alt="Receipt"></div>';
+    document.body.appendChild(rcpViewEl); document.body.style.overflow="hidden";
+    rcpViewEl.addEventListener("click", function(ev){ if(ev.target.closest('[data-rv="close"]')) rcpViewClose(); });
+  };
+  var openBlob=function(blob){ var u=URL.createObjectURL(blob); if(isPdf){ window.open(u,"_blank"); setTimeout(function(){URL.revokeObjectURL(u);},10000); } else showImg(u); };
+  if(local && local.blob){ openBlob(local.blob); return; }
+  if(!rcpOn()) return;
+  api({op:"receiptfull", turn:JOB.turn, id:id}).then(function(r){
+    if(!r||!r.ok) return;
+    if(String(r.mime).indexOf("pdf")>=0 || isPdf){
+      var w=window.open(""); if(w) w.document.write('<iframe src="data:application/pdf;base64,'+r.data+'" style="border:0;width:100%;height:100%"></iframe>');
+    } else showImg("data:image/jpeg;base64,"+r.data);
+  }).catch(function(){});
+}
+function rcpViewClose(){ if(rcpViewUrl){ URL.revokeObjectURL(rcpViewUrl); rcpViewUrl=null; } if(rcpViewEl){ rcpViewEl.remove(); rcpViewEl=null; document.body.style.overflow=rcpEl?"hidden":""; } }
+
+/* ---- boot ---- */
+(function(){ var b=document.getElementById("receiptsOpen"); if(b) b.addEventListener("click", function(){ if(rcpManager()) rcpOpen(); }); })();
+if(rcpManager()){
+  rcpBtnUpd();
+  rcpOpenDB().then(function(db){ rcpDB=db; return rcpLoad(); }).then(function(all){
+    rcpItems=all.filter(function(i){ return i.turn===JOB.turn; }).sort(function(a,b){ return a.at<b.at?-1:1; });
+    rcpBtnUpd(); rcpPump(); rcpPull();
+  });
+  window.addEventListener("online", function(){ rcpRetry(); rcpPull(); });
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden){ rcpRetry(); rcpPull(); } });
+  setInterval(rcpPull, 20000);
+}
+/*RCP:JS-END*/
+
 /* ============================ CONFIRM ============================ */
 var askEl = null, askPrev = null;
 function ask(title, detail, okLabel, onYes){
@@ -2397,7 +2723,7 @@ function closeAsk(){
   if(!askEl) return;
   askEl.remove(); askEl = null;
   document.removeEventListener("keydown", askKeys);
-  if(!lb && !coEl && !coPhEl && !camEl) document.body.style.overflow = "";
+  if(!lb && !coEl && !coPhEl && !camEl && !rcpEl) document.body.style.overflow = "";
   if(askPrev && askPrev.focus) { try{ askPrev.focus(); }catch(e){} }
   askPrev = null;
 }
