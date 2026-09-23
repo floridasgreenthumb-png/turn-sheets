@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Florida's Green Thumb — Turn Sheets</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0F766E">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Turn Sheets">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -87,6 +93,13 @@ main{padding:18px 0 40px}
 .prog .live.on::before{background:var(--brand)}
 .rolebadge{display:inline-block;margin:0 2px 10px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:3px 11px}
 .rolebadge:empty{display:none}
+.alertsbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;
+  min-height:46px;padding:11px 14px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);
+  color:var(--brand);font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;box-shadow:var(--shadow)}
+.alertsbtn.on{color:var(--muted);background:var(--surface-2);border-style:dashed}
+.alertsbtn[hidden]{display:none}
+.alertshint{margin:-4px 2px 14px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.alertshint[hidden]{display:none}
 .foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 4px}
 .foot button{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:12px}
 </style>
@@ -100,6 +113,8 @@ main{padding:18px 0 40px}
   <main class="wrap">
     <div class="lead"><h2>Active turn sheets</h2><span class="count" id="count"></span></div>
     <div class="rolebadge" id="roleBadge"></div>
+    <button class="alertsbtn" id="alerts" hidden></button>
+    <div class="alertshint" id="alertsHint" hidden></div>
     <div id="list"></div>
   </main>
   <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Switch code / log out</button></div>
@@ -118,7 +133,7 @@ main{padding:18px 0 40px}
 
 <script>
 var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}];
-var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0"};   /* {pw, backendUrl, backendKey} */
+var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -135,7 +150,7 @@ function unlock(role){
   var b = document.getElementById("roleBadge");
   if(b) b.textContent = (role === "manager" ? "Manager — prices shown"
       : role === "viewer" ? "Viewer — look only" : "Crew view") + " · tap to switch";
-  render(); poll();
+  render(); poll(); refreshAlerts();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
   e.preventDefault();
@@ -203,6 +218,63 @@ function poll(){
     }).catch(function(){});
 }
 if(HUB.backendUrl) setInterval(function(){ if(!document.getElementById("app").hidden) poll(); }, 20000);
+
+/* ---- job alerts (web push): buzz the phone when a new scope is posted ---- */
+function urlB64ToUint8(b64){
+  var pad = "=".repeat((4 - b64.length % 4) % 4);
+  var s = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  var raw = atob(s), arr = new Uint8Array(raw.length);
+  for(var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+function pushSupported(){ return ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window); }
+function isStandalone(){ return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true; }
+function isIOS(){ return /iP(hone|ad|od)/.test(navigator.userAgent); }
+var swReg = null;
+function ensureSW(){
+  if(swReg) return Promise.resolve(swReg);
+  return navigator.serviceWorker.register("sw.js").then(function(r){ swReg = r; return r; });
+}
+function alertsPost(op, extra){
+  return fetch(HUB.backendUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify(Object.assign({op:op, k:HUB.backendKey}, extra || {}))}).then(function(r){ return r.json(); });
+}
+function refreshAlerts(){
+  var b = document.getElementById("alerts"), hint = document.getElementById("alertsHint");
+  if(!b) return;
+  if(!HUB.backendUrl || !HUB.vapidPublic){ b.hidden = true; hint.hidden = true; return; }
+  if(!pushSupported()){
+    b.hidden = true;
+    if(isIOS() && !isStandalone()){
+      hint.hidden = false;
+      hint.innerHTML = "🔔 Want a buzz when a new job is posted? On iPhone: tap the <b>Share</b> button → <b>Add to Home Screen</b>, open it from your home screen, then turn on alerts.";
+    } else { hint.hidden = true; }
+    return;
+  }
+  b.hidden = false; hint.hidden = true;
+  ensureSW().then(function(r){ return r.pushManager.getSubscription(); }).then(function(sub){
+    if(sub && Notification.permission === "granted"){ b.className = "alertsbtn on"; b.textContent = "🔔 Job alerts are on"; }
+    else { b.className = "alertsbtn"; b.textContent = "🔔 Turn on job alerts"; }
+  }).catch(function(){ b.className = "alertsbtn"; b.textContent = "🔔 Turn on job alerts"; });
+}
+function enableAlerts(){
+  var b = document.getElementById("alerts"), hint = document.getElementById("alertsHint");
+  if(b && b.classList.contains("on")) return;
+  ensureSW().then(function(reg){
+    return Notification.requestPermission().then(function(perm){
+      if(perm !== "granted") throw new Error("perm");
+      return reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: urlB64ToUint8(HUB.vapidPublic)});
+    });
+  }).then(function(sub){
+    return alertsPost("subscribe", {sub: sub.toJSON ? sub.toJSON() : sub});
+  }).then(function(){ refreshAlerts(); }).catch(function(){
+    if(hint){ hint.hidden = false;
+      hint.textContent = (window.Notification && Notification.permission === "denied")
+        ? "Notifications are blocked for this site in your phone's settings. Turn them on there, then tap again."
+        : "Couldn't turn on alerts — try again."; }
+  });
+}
+(function(){ var b = document.getElementById("alerts"); if(b) b.addEventListener("click", enableAlerts); })();
 </script>
 </body>
 </html>
