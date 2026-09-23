@@ -118,7 +118,7 @@ main{padding:18px 0 40px}
 
 <script>
 var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "tasks": 37, "total": 1976.9, "liveUrl": "https://floridasgreenthumb-png.github.io/geese-trail-turn-sheet/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "https://floridasgreenthumb-png.github.io/bridlewood-turn-sheet/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "https://floridasgreenthumb-png.github.io/hi-vista-turn-sheet/", "hasCrew": false}];
-var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0"};   /* {pw, backendUrl, backendKey} */
+var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -133,13 +133,15 @@ function unlock(role){
   document.getElementById("gate").hidden = true;
   var app = document.getElementById("app"); app.hidden = false;
   var b = document.getElementById("roleBadge");
-  if(b) b.textContent = (role === "manager" ? "Manager — prices shown" : "Crew view") + " · tap to switch";
+  if(b) b.textContent = (role === "manager" ? "Manager — prices shown"
+      : role === "viewer" ? "Viewer — look only" : "Crew view") + " · tap to switch";
   render(); poll();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
   e.preventDefault();
   var v = document.getElementById("pw").value.trim().toLowerCase();
   if(HUB.managerPw && v === HUB.managerPw){ unlock("manager"); }
+  else if(HUB.viewerPw && v === HUB.viewerPw){ unlock("viewer"); }
   else if(v === HUB.crewPw){ unlock("crew"); }
   else { document.getElementById("gerr").textContent = "That code didn't match. Ask Steve."; }
 });
@@ -149,11 +151,12 @@ function relock(){
 }
 document.getElementById("out").addEventListener("click", relock);
 (function(){ var rb = document.getElementById("roleBadge"); if(rb){ rb.style.cursor = "pointer"; rb.addEventListener("click", relock); } })();
-try{ var r = sessionStorage.getItem("fgt.in"); if(r === "manager" || r === "crew") unlock(r); }catch(e){}
+try{ var r = sessionStorage.getItem("fgt.in"); if(r === "manager" || r === "crew" || r === "viewer") unlock(r); }catch(e){}
 
 function jobUrl(s){
   var u = s.liveUrl || "";
-  if(ROLE === "crew"){ if(u.slice(-1) !== "/") u += "/"; u += "crew/"; }
+  if(ROLE === "crew" || ROLE === "viewer"){ if(u.slice(-1) !== "/") u += "/"; u += "crew/"; }
+  if(ROLE === "viewer"){ u += "?view=1"; }        // look-only: no ticking, no uploads
   return u;
 }
 function card(s){
@@ -163,15 +166,15 @@ function card(s){
     + '<span class="go">Open &rarr;</span></div>'
     + '<div class="meta"><span class="chip turn">Turn '+esc(s.turn)+'</span>'
     + '<span class="chip">'+s.tasks+' task'+(s.tasks===1?"":"s")+'</span>'
-    + '<span class="chip total">'+money(s.total)+'</span></div>'
+    + (ROLE === "manager" ? '<span class="chip total">'+money(s.total)+'</span>' : '') + '</div>'
     + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
     + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
     + '<span class="live" data-live="'+esc(s.turn)+'">not connected</span></div>'
     + '</a>';
 }
 function render(){
-  /* crew only sees jobs that have a no-price version built */
-  var list = ROLE === "crew" ? SCOPES.filter(function(s){ return s.hasCrew; }) : SCOPES;
+  /* crew + viewer only see jobs that have a no-price version built */
+  var list = (ROLE === "crew" || ROLE === "viewer") ? SCOPES.filter(function(s){ return s.hasCrew; }) : SCOPES;
   document.getElementById("count").textContent = list.length + (list.length===1?" job":" jobs");
   document.getElementById("list").innerHTML = list.length
     ? list.map(card).join("")
