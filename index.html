@@ -102,7 +102,7 @@ main{padding:18px 0 40px}
     <div class="rolebadge" id="roleBadge"></div>
     <div id="list"></div>
   </main>
-  <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Lock</button></div>
+  <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Switch code / log out</button></div>
 </div>
 
 <div id="gate" class="gate">
@@ -133,7 +133,7 @@ function unlock(role){
   document.getElementById("gate").hidden = true;
   var app = document.getElementById("app"); app.hidden = false;
   var b = document.getElementById("roleBadge");
-  if(b) b.textContent = role === "manager" ? "Manager — prices shown" : "Crew view";
+  if(b) b.textContent = (role === "manager" ? "Manager — prices shown" : "Crew view") + " · tap to switch";
   render(); poll();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
@@ -143,10 +143,12 @@ document.getElementById("gform").addEventListener("submit",function(e){
   else if(v === HUB.crewPw){ unlock("crew"); }
   else { document.getElementById("gerr").textContent = "That code didn't match. Ask Steve."; }
 });
-document.getElementById("out").addEventListener("click",function(){
+function relock(){
   try{ sessionStorage.removeItem("fgt.in"); }catch(e){}
   location.reload();
-});
+}
+document.getElementById("out").addEventListener("click", relock);
+(function(){ var rb = document.getElementById("roleBadge"); if(rb){ rb.style.cursor = "pointer"; rb.addEventListener("click", relock); } })();
 try{ var r = sessionStorage.getItem("fgt.in"); if(r === "manager" || r === "crew") unlock(r); }catch(e){}
 
 function jobUrl(s){
