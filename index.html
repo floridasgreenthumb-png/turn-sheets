@@ -75,6 +75,8 @@ main{padding:18px 0 40px}
 .card:active{transform:scale(.99)}
 .card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .addr{font-family:"Barlow Semi Condensed",sans-serif;font-size:19px;font-weight:700;line-height:1.15}
+.cotag{display:inline-block;margin-top:3px;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  color:var(--flag);background:rgba(154,91,18,.10);border:1px solid rgba(154,91,18,.25);border-radius:999px;padding:2px 9px}
 .city{font-size:13px;color:var(--muted);margin-top:1px}
 .go{flex:0 0 auto;color:var(--brand);font-weight:700;font-family:"Barlow Semi Condensed",sans-serif;
   font-size:14px;display:flex;align-items:center;gap:3px;padding-top:3px}
@@ -132,7 +134,7 @@ main{padding:18px 0 40px}
 </div>
 
 <script>
-var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}];
+var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}];
 var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -177,9 +179,10 @@ function jobUrl(s){
 function card(s){
   return '<a class="card" href="'+esc(jobUrl(s))+'" data-turn="'+esc(s.turn)+'">'
     + '<div class="card-h"><div><div class="addr">'+esc(s.h1)+'</div>'
+    + (s.co ? '<div class="cotag">Change Order #'+s.co+'</div>' : '')
     + '<div class="city">'+esc(s.city)+'</div></div>'
     + '<span class="go">Open &rarr;</span></div>'
-    + '<div class="meta"><span class="chip turn">Turn '+esc(s.turn)+'</span>'
+    + '<div class="meta"><span class="chip turn">Turn '+esc(s.turnLabel || s.turn)+'</span>'
     + '<span class="chip">'+s.tasks+' task'+(s.tasks===1?"":"s")+'</span>'
     + (ROLE === "manager" ? '<span class="chip total">'+money(s.total)+'</span>' : '') + '</div>'
     + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
