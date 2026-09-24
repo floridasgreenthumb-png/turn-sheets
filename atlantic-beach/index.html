@@ -827,15 +827,15 @@ var ROOM_ORDER = ["Whole House","Living Room","Kitchen","Dining Room","Entrance"
 
 /* id, trade, name, rooms, note, qty, cost, photo# */
 var T = [
- [1, "common", "Pressure wash driveway, garage bay & flat areas", ["Front Elevation (Main)-01"], "Driveway and garage bay are dirty/stained. Pressure wash ALL flat areas — front, back, and the entryway all the way to the door and garage.", 1, 150.0, 0],
- [2, "paint", "Paint full home wall-to-wall (SW Alabaster)", [], "Whole-home repaint, wall to wall, Sherwin-Williams Alabaster (~1,700 sq ft).", 1, 255.0, 0],
+ [1, "common", "Pressure wash driveway, garage bay & flat areas", ["Front Elevation (Main)-01"], "Driveway and garage bay are dirty/stained. Pressure wash ALL flat areas — front, back, and the entryway all the way to the door and garage.", 1, 150.0, 1],
+ [2, "paint", "Paint full home wall-to-wall (SW Alabaster)", [], "Whole-home repaint, wall to wall, Sherwin-Williams Alabaster (~1,700 sq ft).", 1, 255.0, 2],
  [3, "paint", "Paint trim, base & doors (SW Alabaster)", [], "Paint the trim, baseboards and doors — SW Alabaster. Confirm which areas on site.", 1, 150.0, 0],
- [4, "paint", "Repaint peeling front-entry ceiling", ["Entrance-01"], "Front entryway walls/ceiling/trim worn. Repaint the front exterior ceiling — it's peeling. SW Alabaster.", 1, 75.0, 0],
- [5, "plumb", "Caulk/reset shower & remove shelves", ["Bathroom - Master-01"], "Primary bath shower worn. Caulk/reset the specialty shower. Remove the shelves inside the shower and clean any glue off the wall after.", 1, 10.0, 0],
- [6, "door", "Tighten loose bathroom door hinge", ["Bathroom-01"], "Bathroom One door hinge is loose — tighten it so the door operates properly.", 1, 3.0, 0],
- [7, "plumb", "Reset toilet & replace wax ring", ["Bathroom-01"], "Toilet is loose / not set securely in the floor. Replace the wax ring and reset it to the floor.", 1, 35.0, 0],
- [8, "plumb", "Re-secure toilet paper holder", ["Bathroom-01"], "Bathroom hardware loose — secure the toilet paper holder back to the wall.", 1, 1.0, 0],
- [9, "paint", "Repaint garage attic access panel", ["Garage-01"], "Garage walls/ceiling/trim worn. Repaint the attic access panel. SW Alabaster.", 1, 25.0, 0]
+ [4, "paint", "Repaint peeling front-entry ceiling", ["Entrance-01"], "Front entryway walls/ceiling/trim worn. Repaint the front exterior ceiling — it's peeling. SW Alabaster.", 1, 75.0, 3],
+ [5, "plumb", "Caulk/reset shower & remove shelves", ["Bathroom - Master-01"], "Primary bath shower worn. Caulk/reset the specialty shower. Remove the shelves inside the shower and clean any glue off the wall after.", 1, 10.0, 4],
+ [6, "door", "Tighten loose bathroom door hinge", ["Bathroom-01"], "Bathroom One door hinge is loose — tighten it so the door operates properly.", 1, 3.0, 5],
+ [7, "plumb", "Reset toilet & replace wax ring", ["Bathroom-01"], "Toilet is loose / not set securely in the floor. Replace the wax ring and reset it to the floor.", 1, 35.0, 6],
+ [8, "plumb", "Re-secure toilet paper holder", ["Bathroom-01"], "Bathroom hardware loose — secure the toilet paper holder back to the wall.", 1, 1.0, 7],
+ [9, "paint", "Repaint garage attic access panel", ["Garage-01"], "Garage walls/ceiling/trim worn. Repaint the attic access panel. SW Alabaster.", 1, 25.0, 8]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -2366,7 +2366,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20260924-221022";          // stamped in at publish time
+  var CAM_BUILD = "20260924-221421";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
