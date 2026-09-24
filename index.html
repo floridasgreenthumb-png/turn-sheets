@@ -107,6 +107,50 @@ main{padding:18px 0 40px}
 .alertsbtn[hidden]{display:none}
 .alertshint{margin:-4px 2px 14px;font-size:12.5px;line-height:1.45;color:var(--muted)}
 .alertshint[hidden]{display:none}
+.managecrew{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;
+  min-height:46px;padding:11px 14px;border:1px solid var(--brand);border-radius:12px;background:var(--brand-soft);
+  color:var(--brand);font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px}
+.managecrew[hidden]{display:none}
+.jobwrap{margin-bottom:11px}
+.jobwrap .card{margin-bottom:0}
+.assignbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin:-2px 0 0;padding:8px 14px;background:var(--surface-2);border:1px solid var(--line-2);border-top:0;
+  border-radius:0 0 14px 14px}
+.asg-who{font-size:12.5px;color:var(--ink-2)}
+.asg-who b{color:var(--ink)}
+.asg-btn{padding:6px 12px;border:1px solid var(--brand);border-radius:8px;background:var(--surface);
+  color:var(--brand);font-weight:700;font-size:12.5px}
+/* manager modals */
+.mm{position:fixed;inset:0;z-index:200;background:rgba(10,13,12,.5);display:grid;place-items:center;
+  padding:24px 16px;padding-top:calc(24px + env(safe-area-inset-top,0px))}
+.mm-card{width:100%;max-width:420px;max-height:86vh;overflow:auto;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.mm-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.mm-top h3{font-size:19px;font-weight:700}
+.mm-x{background:none;border:0;font-size:26px;line-height:1;color:var(--muted);padding:0 4px}
+.mm-p{font-size:13.5px;color:var(--muted);line-height:1.45;margin:0 0 14px}
+.mm-add{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.mm-in{min-height:46px;padding:11px 13px;font:inherit;font-size:15px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+.mm-in:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.mm-btn{min-height:46px;padding:11px 16px;border:0;border-radius:10px;background:var(--brand);color:#fff;
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px}
+.mm-btn.ghost{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.mm-err{font-size:12.5px;color:var(--flag);min-height:16px;margin:4px 0}
+.mm-list{margin-top:6px;display:flex;flex-direction:column;gap:8px}
+.mm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;
+  border:1px solid var(--line-2);border-radius:11px;background:var(--surface-2)}
+.mm-name{font-weight:600;color:var(--ink)}
+.mm-code{font-size:12.5px;color:var(--muted)}
+.mm-code b{font-family:"IBM Plex Mono",monospace;color:var(--brand)}
+.mm-del{padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:600}
+.mm-empty,.mm-load{font-size:13.5px;color:var(--muted);text-align:center;padding:16px 8px}
+.asg-list{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.asg-row{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line-2);
+  border-radius:10px;font-size:15px;color:var(--ink);cursor:pointer}
+.asg-row input{width:20px;height:20px;accent-color:var(--brand);flex:0 0 auto}
+.mm-acts{display:flex;gap:10px;margin-top:6px}
+.mm-acts .mm-btn{flex:1}
 .foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 4px}
 .foot button{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:12px}
 </style>
@@ -120,6 +164,7 @@ main{padding:18px 0 40px}
   <main class="wrap">
     <div class="lead"><h2>Active turn sheets</h2><span class="count" id="count"></span></div>
     <div class="rolebadge" id="roleBadge"></div>
+    <button class="managecrew" id="manageCrew" type="button" hidden>&#128101; Manage crew &amp; codes</button>
     <button class="alertsbtn" id="alerts" hidden></button>
     <div class="alertshint" id="alertsHint" hidden></div>
     <div id="list"></div>
@@ -145,6 +190,20 @@ var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "p
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+/* crew people + per-scope assignments live in the back end (manager-managed) */
+var PEOPLE = [], ASSIGN = {}, ROSTER = [];
+function hubApi(op, extra){
+  if(!HUB.backendUrl) return Promise.reject("no backend");
+  return fetch(HUB.backendUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify(Object.assign({op:op, k:HUB.backendKey}, extra||{}))}).then(function(r){ return r.json(); });
+}
+function fetchConfig(){
+  return hubApi("config").then(function(r){
+    if(r && r.ok){ PEOPLE = r.people || []; ASSIGN = r.assign || {}; if(!document.getElementById("app").hidden) render(); }
+  }).catch(function(){});
+}
+function personName(id){ var p = PEOPLE.filter(function(x){ return x.id === id; })[0]; return p ? p.n || p.name : id; }
+
 /* light gate: keeps casual visitors out of a public URL. Not bank security —
    the code lives in the page. Real privacy would need a server login. */
 /* two codes: crew (opens the no-price pages) and manager (opens the priced pages) */
@@ -159,17 +218,22 @@ function unlock(role, personId, personName){
   if(b) b.textContent = (role === "manager" ? "Manager — prices shown"
       : role === "viewer" ? "Viewer — look only"
       : PERSON_NAME ? (PERSON_NAME + "'s jobs") : "Crew view") + " · tap to switch";
-  render(); poll(); refreshAlerts();
+  var mc = document.getElementById("manageCrew"); if(mc) mc.hidden = (role !== "manager");
+  render(); poll(); refreshAlerts(); fetchConfig();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
   e.preventDefault();
   var v = document.getElementById("pw").value.trim().toLowerCase();
-  var person = (HUB.people || []).filter(function(p){ return p.c && p.c === v; })[0];
-  if(HUB.managerPw && v === HUB.managerPw){ unlock("manager"); }
-  else if(HUB.viewerPw && v === HUB.viewerPw){ unlock("viewer"); }
-  else if(person){ unlock("crew", person.id, person.n); }
-  else if(v === HUB.crewPw){ unlock("crew"); }
-  else { document.getElementById("gerr").textContent = "That code didn't match. Ask Steve."; }
+  var err = document.getElementById("gerr");
+  if(HUB.managerPw && v === HUB.managerPw){ return unlock("manager"); }
+  if(HUB.viewerPw && v === HUB.viewerPw){ return unlock("viewer"); }
+  if(v === HUB.crewPw){ return unlock("crew"); }
+  /* a personal crew code? the back end holds those (manager-managed) */
+  err.textContent = "Checking…";
+  hubApi("login", {code:v}).then(function(r){
+    if(r && r.ok){ err.textContent = ""; unlock("crew", r.id, r.name); }
+    else err.textContent = "That code didn't match. Ask your manager.";
+  }).catch(function(){ err.textContent = "Couldn't check that code — try again."; });
 });
 function relock(){
   try{ sessionStorage.removeItem("fgt.in"); sessionStorage.removeItem("fgt.pid"); sessionStorage.removeItem("fgt.pn"); }catch(e){}
@@ -189,7 +253,7 @@ function jobUrl(s){
   return u;
 }
 function card(s){
-  return '<a class="card' + (s.completed ? ' done' : '') + '" href="'+esc(jobUrl(s))+'" data-turn="'+esc(s.turn)+'">'
+  var inner = '<a class="card' + (s.completed ? ' done' : '') + '" href="'+esc(jobUrl(s))+'" data-turn="'+esc(s.turn)+'">'
     + '<div class="card-h"><div><div class="addr">'+esc(s.h1)+'</div>'
     + (s.completed ? '<div class="donetag">&#10003; Done</div>' : '')
     + (s.co ? '<div class="cotag">Change Order #'+s.co+'</div>' : '')
@@ -202,12 +266,19 @@ function card(s){
     + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
     + '<span class="live" data-live="'+esc(s.turn)+'">not connected</span></div>'
     + '</a>';
+  if(ROLE === "manager" && !s.completed && s.hasCrew){
+    var a = ASSIGN[s.turn] || [];
+    var who = a.length ? a.map(personName).join(", ") : "Everyone";
+    inner += '<div class="assignbar"><span class="asg-who">Crew: <b>'+esc(who)+'</b></span>'
+      + '<button class="asg-btn" type="button" data-assign="'+esc(s.turn)+'">Choose who sees it</button></div>';
+  }
+  return '<div class="jobwrap">' + inner + '</div>';
 }
 function canSee(s){
   if(ROLE === "manager") return true;           // manager/owner sees everything
   if(!s.hasCrew) return false;                   // crew + viewer need a no-price build
   if(ROLE === "viewer") return true;             // a viewer (super/client) sees all crew jobs
-  var a = s.assignedTo || [];
+  var a = ASSIGN[s.turn] || s.assignedTo || [];   // backend assignment wins, spec is a fallback
   if(!a.length) return true;                      // unassigned = open to all crew
   return !!PERSON && a.indexOf(PERSON) !== -1;    // assigned = only those people (generic crew, PERSON="", won't match)
 }
@@ -299,6 +370,101 @@ function enableAlerts(){
   });
 }
 (function(){ var b = document.getElementById("alerts"); if(b) b.addEventListener("click", enableAlerts); })();
+
+/* ===================== MANAGER: crew people + assignments ===================== */
+var mcEl = null, asgEl = null;
+function closeModal(el){ if(el){ el.remove(); if(!mcEl && !asgEl) document.body.style.overflow = ""; } }
+function openModal(inner){
+  var el = document.createElement("div"); el.className = "mm";
+  el.innerHTML = '<div class="mm-card">' + inner + '</div>';
+  document.body.appendChild(el); document.body.style.overflow = "hidden";
+  return el;
+}
+/* --- Manage crew: add / list / remove people --- */
+function openManageCrew(){
+  if(mcEl) return;
+  mcEl = openModal('<div class="mm-top"><h3>Crew &amp; codes</h3><button class="mm-x" data-mc="close" aria-label="Close">&times;</button></div>'
+    + '<p class="mm-p">Add a crew member and pick a login code for them. They enter that code on this page to see only the jobs you assign to them.</p>'
+    + '<div class="mm-add"><input id="mcName" class="mm-in" type="text" placeholder="Name (e.g. Bob)" autocomplete="off">'
+    + '<input id="mcCode" class="mm-in" type="text" placeholder="Login code (e.g. bob-419)" autocomplete="off">'
+    + '<button class="mm-btn" data-mc="add">Add</button></div>'
+    + '<div class="mm-err" id="mcErr"></div>'
+    + '<div id="mcList" class="mm-list"><div class="mm-load">Loading crew…</div></div>');
+  mcEl.addEventListener("click", mcClick);
+  hubApi("roster").then(function(r){ if(r && r.ok){ ROSTER = r.people || []; ASSIGN = r.assign || ASSIGN; } paintRoster(); }).catch(function(){ paintRoster(); });
+}
+function paintRoster(){
+  var box = document.getElementById("mcList"); if(!box) return;
+  if(!ROSTER.length){ box.innerHTML = '<div class="mm-empty">No crew added yet.</div>'; return; }
+  box.innerHTML = ROSTER.map(function(p){
+    return '<div class="mm-row"><div><div class="mm-name">'+esc(p.name)+'</div>'
+      + '<div class="mm-code">code: <b>'+esc(p.code)+'</b></div></div>'
+      + '<button class="mm-del" data-mc="del" data-id="'+esc(p.id)+'">Remove</button></div>';
+  }).join("");
+}
+function mcClick(e){
+  var b = e.target.closest("[data-mc]"); if(!b) return;
+  var a = b.dataset.mc;
+  if(a === "close"){ mcEl = null; return closeModal(e.currentTarget); }
+  if(a === "add"){
+    var name = document.getElementById("mcName").value.trim();
+    var code = document.getElementById("mcCode").value.trim();
+    var err = document.getElementById("mcErr");
+    if(name.length < 2 || code.length < 2){ err.textContent = "Enter a name and a code (2+ characters)."; return; }
+    err.textContent = "Adding…";
+    hubApi("addperson", {name:name, code:code}).then(function(r){
+      if(r && r.ok){ ROSTER = r.people || []; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};});
+        document.getElementById("mcName").value = ""; document.getElementById("mcCode").value = ""; err.textContent = ""; paintRoster(); render(); }
+      else err.textContent = (r && r.error) || "Couldn't add.";
+    }).catch(function(){ err.textContent = "Couldn't reach the server."; });
+    return;
+  }
+  if(a === "del"){
+    var id = b.dataset.id;
+    hubApi("delperson", {id:id}).then(function(r){
+      if(r && r.ok){ ROSTER = r.people || []; ASSIGN = r.assign || ASSIGN; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};}); paintRoster(); render(); }
+    }).catch(function(){});
+    return;
+  }
+}
+/* --- Assign: who sees this scope --- */
+function openAssign(turn){
+  var s = SCOPES.filter(function(x){ return x.turn === turn; })[0]; if(!s) return;
+  var people = PEOPLE.length ? PEOPLE : ROSTER.map(function(x){return {id:x.id, n:x.name};});
+  var cur = ASSIGN[turn] || [];
+  var rows = people.length ? people.map(function(p){
+    var on = cur.indexOf(p.id) !== -1;
+    return '<label class="asg-row"><input type="checkbox" data-pid="'+esc(p.id)+'"'+(on?" checked":"")+'><span>'+esc(p.n||p.name)+'</span></label>';
+  }).join("") : '<div class="mm-empty">No crew yet — add people under &ldquo;Manage crew&rdquo; first.</div>';
+  asgEl = openModal('<div class="mm-top"><h3>Who sees this job?</h3><button class="mm-x" data-asg="close" aria-label="Close">&times;</button></div>'
+    + '<p class="mm-p"><b>'+esc(s.h1)+'</b>'+(s.co?' &middot; Change Order #'+s.co:'')+'<br>Check the people who should see it. Leave all unchecked to keep it open to everyone.</p>'
+    + '<div class="asg-list">'+rows+'</div>'
+    + '<div class="mm-err" id="asgErr"></div>'
+    + '<div class="mm-acts"><button class="mm-btn ghost" data-asg="close">Cancel</button><button class="mm-btn" data-asg="save" data-turn="'+esc(turn)+'">Save</button></div>');
+  asgEl.addEventListener("click", asgClick);
+}
+function asgClick(e){
+  var b = e.target.closest("[data-asg]"); if(!b) return;
+  var a = b.dataset.asg;
+  if(a === "close"){ asgEl = null; return closeModal(e.currentTarget.closest(".mm") || document.querySelector(".mm")); }
+  if(a === "save"){
+    var turn = b.dataset.turn;
+    var ids = [].slice.call(document.querySelectorAll(".asg-list input:checked")).map(function(c){ return c.dataset.pid; });
+    document.getElementById("asgErr").textContent = "Saving…";
+    hubApi("assign", {scope:turn, people:ids}).then(function(r){
+      if(r && r.ok){ ASSIGN = r.assign || ASSIGN; asgEl = null; closeModal(document.querySelector(".mm")); render(); }
+      else document.getElementById("asgErr").textContent = "Couldn't save.";
+    }).catch(function(){ document.getElementById("asgErr").textContent = "Couldn't reach the server."; });
+    return;
+  }
+}
+(function(){ var b = document.getElementById("manageCrew"); if(b) b.addEventListener("click", openManageCrew); })();
+document.getElementById("list").addEventListener("click", function(e){
+  var b = e.target.closest("[data-assign]");
+  if(b){ e.preventDefault(); openAssign(b.dataset.assign); }
+});
+fetchConfig();
+if(HUB.backendUrl) setInterval(function(){ if(!document.getElementById("app").hidden && ROLE) fetchConfig(); }, 30000);
 </script>
 </body>
 </html>
