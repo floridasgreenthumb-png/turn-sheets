@@ -819,19 +819,19 @@ var ROOM_ORDER = ["Whole House","Living Room","Kitchen","Dining Room","Entrance"
 
 /* id, trade, name, rooms, note, qty, cost, photo# */
 var T = [
- [1, "plumb", "Replace kitchen faucet", ["Kitchen-01"], "Old faucet leaks at the base — replace with a matching pull-down.", 1, 145.0, 0],
+ [1, "plumb", "Replace kitchen faucet", ["Kitchen-01"], "Old faucet leaks at the base — replace with a matching pull-down.", 1, 145.0, 1],
  [2, "plumb", "Replace 1/2 HP garbage disposal", ["Kitchen-01"], "Disposal is seized. Replace with cord.", 1, 179.25, 0],
  [3, "cab", "Touch up cabinet paint", ["Kitchen-01"], "Touch up chips on the base cabinets by the sink.", 1, 20.0, 0],
  [4, "elec", "Replace GFCI outlet", ["Kitchen-01"], "GFCI won't reset — replace it.", 1, 21.22, 0],
- [5, "plumb", "Replace elongated toilet seat", ["Bathroom - Master-01"], "Cracked seat.", 1, 22.53, 0],
+ [5, "plumb", "Replace elongated toilet seat", ["Bathroom - Master-01"], "Cracked seat.", 1, 22.53, 2],
  [6, "plumb", "Replace shower head", ["Bathroom - Master-01"], "Low flow / clogged head.", 1, 16.76, 0],
  [7, "plumb", "Caulk all wet areas", ["Bathroom - Master-01"], "Re-caulk tub and vanity.", 1, 20.0, 0],
- [8, "paint", "Patch & paint drywall", ["Bedroom-02"], "Patch two nail holes and a small ding, then paint to match.", 1, 26.98, 0],
+ [8, "paint", "Patch & paint drywall", ["Bedroom-02"], "Patch two nail holes and a small ding, then paint to match.", 1, 26.98, 3],
  [9, "door", "Replace passage door knob", ["Bedroom-02"], "Loose knob, satin nickel.", 1, 18.09, 0],
- [10, "window", "Replace blind brackets", ["Living Room-01"], "Replace the brackets on the living-room blinds.", 5, 5.0, 0],
+ [10, "window", "Replace blind brackets", ["Living Room-01"], "Replace the brackets on the living-room blinds.", 5, 5.0, 4],
  [11, "paint", "Interior touch-up paint", [], "Touch up doors, trim and ceilings throughout.", 1, 250.0, 0],
- [12, "land", "Light tree trimming package", ["Back Elevation-01"], "Trim the two palms and remove low branches.", 1, 188.18, 0],
- [13, "land", "Replace 2 stockade fence pickets", ["Back Elevation-01"], "Two broken slats on the left side.", 2, 12.94, 0],
+ [12, "land", "Light tree trimming package", ["Back Elevation-01"], "Trim the two palms and remove low branches.", 1, 188.18, 5],
+ [13, "land", "Replace 2 stockade fence pickets", ["Back Elevation-01"], "Two broken slats on the left side.", 2, 12.94, 6],
  [14, "common", "Pressure wash driveway & walk", ["Front Elevation (Main)-01"], "Pressure wash the flat work out front.", 1, 30.0, 0]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
@@ -2367,7 +2367,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20260924-134645";          // stamped in at publish time
+  var CAM_BUILD = "20260924-140307";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
