@@ -60,6 +60,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--surface); border-bottom:1px solid var(--line);
 }
 .top-in{max-width:880px;margin:0 auto;padding:10px 16px 0}
+.backlist{display:inline-flex;align-items:center;gap:5px;margin-bottom:9px;
+  color:var(--brand);font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14px;
+  letter-spacing:.01em;text-decoration:none}
+.backlist svg{width:15px;height:15px}
+.backlist:active{opacity:.6}
+.top.compact .backlist{margin-bottom:6px}
 .head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .addr{flex:1 1 220px;min-width:0}
 .addr-link{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;text-decoration:none;color:inherit}
@@ -728,6 +734,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div class="top">
   <div class="top-in">
+    <a class="backlist" id="backList" href="/" aria-label="Back to all scopes">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+      All scopes
+    </a>
     <div class="head">
       <div class="addr">
         <a class="addr-link" id="mapsLink" target="_blank" rel="noopener" aria-label="Open in Google Maps and navigate"><h1>10228 Geese Trail Cir</h1><span class="addr-go"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>Navigate</span></a>
@@ -2403,7 +2413,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20260924-000739";          // stamped in at publish time
+  var CAM_BUILD = "20260924-001543";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2999,6 +3009,18 @@ setView(view);
 
 /* the "You: __" chip — tap to set or change your initials */
 (function(){ var el = document.getElementById("whoami"); if(el) el.addEventListener("click", function(){ askInitials(); }); paintWhoami(); })();
+
+/* "All scopes" — go back to the hub they came from (keeps their place); else open the list */
+(function(){
+  var b = document.getElementById("backList"); if(!b) return;
+  b.addEventListener("click", function(e){
+    try{
+      if(document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1){
+        e.preventDefault(); history.back();
+      }
+    }catch(err){}
+  });
+})();
 
 /* shrink the header once they start scrolling — it's 1/3 of a phone screen otherwise */
 (function(){
