@@ -174,6 +174,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mode.connecting{color:var(--muted);opacity:.7}
 .mode.local{color:var(--flag)}
 .mode.offline{color:var(--flag)}
+.whoami{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 10px;
+  border:1px solid var(--line-2);border-radius:999px;background:var(--surface-2);
+  color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.whoami b{color:var(--ink);font-family:"IBM Plex Mono",monospace}
+.whoami[hidden]{display:none}
+.top.compact .whoami{display:none}
 .reopen{
   padding:5px 11px;border:1px solid var(--done);border-radius:7px;
   font-family:"Barlow Semi Condensed",sans-serif;font-size:13.5px;font-weight:600;
@@ -727,6 +733,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <a class="addr-link" id="mapsLink" target="_blank" rel="noopener" aria-label="Open in Google Maps and navigate"><h1>10228 Geese Trail Cir</h1><span class="addr-go"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>Navigate</span></a>
         <div class="sub">Sun City Center, FL 33573 &middot; <b>Turn 487966</b> &middot; 4 bed / 2.5 bath &middot; 2,028 sq ft &middot; Lockbox <b class="mono">8274</b></div>
         <div class="mode connecting" id="mode">Connecting…</div>
+        <button class="whoami" id="whoami" type="button" hidden></button>
       </div>
       <div class="ring">
         <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
@@ -2396,7 +2403,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20260923-190141";          // stamped in at publish time
+  var CAM_BUILD = "20260924-000739";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2729,17 +2736,63 @@ function closeAsk(){
 }
 
 /* marking complete asks first; reopening never does */
+/* who's marking tasks — their initials, so each task shows who did it */
+function myBy(){
+  if(typeof SYNC_ME === "string" && SYNC_ME) return SYNC_ME;
+  try{ return localStorage.getItem("turnsheet.by") || ""; }catch(e){ return ""; }
+}
+function setMyBy(v){
+  v = String(v || "").trim().toUpperCase().replace(/\s+/g, "").slice(0, 5);
+  if(typeof SYNC_ME !== "undefined") SYNC_ME = v;
+  try{ localStorage.setItem("turnsheet.by", v); }catch(e){}
+  paintWhoami();
+  return v;
+}
+var initEl = null;
+function askInitials(cb){
+  if(initEl) return;
+  initEl = document.createElement("div"); initEl.className = "ask";
+  initEl.innerHTML = '<div class="ask-card" role="alertdialog" aria-modal="true" aria-labelledby="initT">'
+    + '<h3 id="initT">Who are you?</h3>'
+    + '<p>Enter your initials so every task shows who did it. You only do this once on this phone.</p>'
+    + '<input class="ask-name" id="initIn" type="text" autocapitalize="characters" autocomplete="off" placeholder="e.g. JW" value="' + esc(myBy()) + '">'
+    + '<div class="ask-row"><button class="btn" data-in="no">Cancel</button>'
+    + '<button class="btn primary" id="initYes" data-in="yes" disabled>Save</button></div></div>';
+  document.body.appendChild(initEl);
+  document.body.style.overflow = "hidden";
+  var inp = document.getElementById("initIn"), yes = document.getElementById("initYes");
+  function valid(){ return inp.value.replace(/[^A-Za-z]/g, "").length >= 2; }
+  function upd(){ yes.disabled = !valid(); }
+  inp.addEventListener("input", upd); upd();
+  initEl.addEventListener("click", function(e){
+    if(e.target === initEl || e.target.closest('[data-in="no"]')) return closeInit();
+    if(e.target.closest('[data-in="yes"]')){ if(!valid()) return; var v = setMyBy(inp.value); closeInit(); if(cb) cb(v); }
+  });
+  setTimeout(function(){ inp.focus(); }, 40);
+}
+function closeInit(){ if(!initEl) return; initEl.remove(); initEl = null; document.body.style.overflow = ""; }
+function ensureInitials(cb){ if(myBy()) return cb(); askInitials(function(){ cb(); }); }
+function paintWhoami(){
+  var el = document.getElementById("whoami"); if(!el) return;
+  if(VIEWONLY){ el.hidden = true; return; }
+  var v = myBy();
+  el.hidden = false;
+  el.innerHTML = v ? ('You: <b>' + esc(v) + '</b> &middot; change') : 'Set your initials';
+}
+
 function setDone(id, yes, after){
   if(VIEWONLY) return;                 // look-only link can't change anything
   if(!yes){
     delete state.done[id]; delete DONE_BY[id]; save(); commitTask(id, false);
     if(after) after(); return;
   }
-  ask("Mark this complete?", byId[id].name, "Yes, complete it", function(){
-    state.done[id] = true;
-    DONE_BY[id] = {by:UID || (typeof SYNC_ME === "string" ? SYNC_ME : "") || "", at:new Date().toISOString()};
-    save(); commitTask(id, true);
-    if(after) after();
+  ensureInitials(function(){
+    ask("Mark this complete?", byId[id].name, "Yes, complete it", function(){
+      state.done[id] = true;
+      DONE_BY[id] = {by: myBy() || UID || "", at:new Date().toISOString()};
+      save(); commitTask(id, true);
+      if(after) after();
+    });
   });
 }
 
@@ -2944,6 +2997,9 @@ try{ var v0 = localStorage.getItem(KEY + ".view"); if(v0) view = v0; }catch(e){}
 MATS.forEach(function(m){ MID[m.id] = m; });
 setView(view);
 
+/* the "You: __" chip — tap to set or change your initials */
+(function(){ var el = document.getElementById("whoami"); if(el) el.addEventListener("click", function(){ askInitials(); }); paintWhoami(); })();
+
 /* shrink the header once they start scrolling — it's 1/3 of a phone screen otherwise */
 (function(){
   var top = document.querySelector(".top"), ticking = false, isCompact = false, lockUntil = 0;
@@ -2979,8 +3035,7 @@ function whoAndWhen(id){
   var r = DONE_BY[id];
   if(!r) return "";
   var bits = [];
-  var me = typeof SYNC_ME === "string" ? SYNC_ME : "";
-  var nm = r.by ? ((r.by === UID || (me && r.by === me)) ? "You" : (NAMES[r.by] || (/^u_/.test(r.by) ? "" : r.by))) : "";
+  var nm = r.by ? (NAMES[r.by] || (/^u_/.test(r.by) ? "" : r.by)) : "";   // show the actual initials, not "You"
   if(nm) bits.push(nm);
   if(r.at){
     var d = new Date(r.at);
