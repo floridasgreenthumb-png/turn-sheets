@@ -199,7 +199,11 @@ function hubApi(op, extra){
 }
 function fetchConfig(){
   return hubApi("config").then(function(r){
-    if(r && r.ok){ PEOPLE = r.people || []; ASSIGN = r.assign || {}; if(!document.getElementById("app").hidden) render(); }
+    if(r && r.ok){
+      var changed = JSON.stringify(PEOPLE) !== JSON.stringify(r.people) || JSON.stringify(ASSIGN) !== JSON.stringify(r.assign);
+      PEOPLE = r.people || []; ASSIGN = r.assign || {};
+      if(changed && !document.getElementById("app").hidden) render();   // only redraw when it actually changed
+    }
   }).catch(function(){});
 }
 function personName(id){ var p = PEOPLE.filter(function(x){ return x.id === id; })[0]; return p ? p.n || p.name : id; }
@@ -289,8 +293,23 @@ function render(){
   document.getElementById("list").innerHTML = list.length
     ? list.map(card).join("")
     : '<div class="foot" style="padding:30px 16px">No jobs to show yet.</div>';
+  paintProgress();   // re-apply the last live numbers so a redraw never flashes back to 0
 }
 
+/* live progress kept here so a re-render can restore it without waiting for the next poll */
+var PROG = {};
+function paintProgress(){
+  Object.keys(PROG).forEach(function(turn){
+    var p = PROG[turn];
+    var bar = document.querySelector('[data-bar="'+turn+'"]');
+    var txt = document.querySelector('[data-done="'+turn+'"]');
+    var live = document.querySelector('[data-live="'+turn+'"]');
+    if(bar) bar.style.width = p.pct + "%";
+    if(txt) txt.innerHTML = '<span class="mono">'+p.done+'/'+p.tasks+'</span> done'
+      + (p.photos ? ' &middot; <span class="mono">'+p.photos+'</span> photos' : '');
+    if(live){ live.textContent = "live"; live.className = "live on"; }
+  });
+}
 /* live progress: ask Steve's backend for done-counts + photo counts */
 function poll(){
   if(!HUB.backendUrl) return;
@@ -302,14 +321,9 @@ function poll(){
       SCOPES.forEach(function(s){
         var d = (j.scopes && j.scopes[s.turn]) || null;
         var done = d ? d.done : 0, pct = s.tasks ? Math.round(done/s.tasks*100) : 0;
-        var bar = document.querySelector('[data-bar="'+s.turn+'"]');
-        var txt = document.querySelector('[data-done="'+s.turn+'"]');
-        var live = document.querySelector('[data-live="'+s.turn+'"]');
-        if(bar) bar.style.width = pct+"%";
-        if(txt) txt.innerHTML = '<span class="mono">'+done+'/'+s.tasks+'</span> done'
-          + (d && d.photos ? ' &middot; <span class="mono">'+d.photos+'</span> photos' : '');
-        if(live){ live.textContent = "live"; live.className = "live on"; }
+        PROG[s.turn] = { done: done, tasks: s.tasks, photos: (d && d.photos) || 0, pct: pct };
       });
+      paintProgress();
     }).catch(function(){});
 }
 if(HUB.backendUrl) setInterval(function(){ if(!document.getElementById("app").hidden) poll(); }, 20000);
