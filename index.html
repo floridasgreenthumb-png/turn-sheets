@@ -151,6 +151,20 @@ main{padding:18px 0 40px}
 .asg-row input{width:20px;height:20px;accent-color:var(--brand);flex:0 0 auto}
 .mm-acts{display:flex;gap:10px;margin-top:6px}
 .mm-acts .mm-btn{flex:1}
+/* completed scopes: collapsible folder at the bottom */
+.donesec{margin-top:14px}
+.donehdr{display:flex;align-items:center;justify-content:space-between;width:100%;
+  padding:13px 14px;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;
+  box-shadow:var(--shadow);color:var(--ink);font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px}
+.donehdr .dh-l{display:flex;align-items:center;gap:9px}
+.donehdr .dh-l>svg{width:19px;height:19px;flex:0 0 auto;color:var(--brand)}
+.dh-n{display:inline-grid;place-items:center;min-width:23px;height:22px;padding:0 7px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand);font-size:12.5px;font-weight:700}
+.dh-chev{width:18px;height:18px;flex:0 0 auto;color:var(--muted);transition:transform .18s}
+.donehdr.open .dh-chev{transform:rotate(180deg)}
+.donebody{margin-top:11px}
+.donebody[hidden]{display:none}
+.donesec[hidden]{display:none}
 .foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 4px}
 .foot button{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:12px}
 </style>
@@ -168,6 +182,13 @@ main{padding:18px 0 40px}
     <button class="alertsbtn" id="alerts" hidden></button>
     <div class="alertshint" id="alertsHint" hidden></div>
     <div id="list"></div>
+    <div id="doneSec" class="donesec" hidden>
+      <button class="donehdr" id="doneToggle" type="button" aria-expanded="false">
+        <span class="dh-l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="m9 13 2 2 4-4"/></svg> Completed scopes <span class="dh-n" id="doneCount">0</span></span>
+        <svg class="dh-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="doneList" class="donebody" hidden></div>
+    </div>
   </main>
   <div class="foot">Tap a job to open its checklist, carts, photos and change order. <button id="out">Switch code / log out</button></div>
 </div>
@@ -184,7 +205,7 @@ main{padding:18px 0 40px}
 </div>
 
 <script>
-var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": false, "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": false, "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": false, "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": false, "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
+var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": false, "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": false, "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": false, "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
 var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "people": [], "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -287,17 +308,43 @@ function canSee(s){
   return !!PERSON && a.indexOf(PERSON) !== -1;    // assigned = only those people (generic crew, PERSON="", won't match)
 }
 function render(){
-  var list = SCOPES.filter(canSee);
-  list = list.slice().sort(function(a, b){ return (a.completed ? 1 : 0) - (b.completed ? 1 : 0); });  // finished jobs sink to the bottom
-  document.getElementById("count").textContent = list.length + (list.length===1?" job":" jobs");
-  document.getElementById("list").innerHTML = list.length
-    ? list.map(card).join("")
-    : '<div class="foot" style="padding:30px 16px">No jobs to show yet.</div>';
+  var visible = SCOPES.filter(canSee);
+  var open = visible.filter(function(s){ return !s.completed; });   // active jobs stay in the main list
+  var done = visible.filter(function(s){ return s.completed; });    // finished jobs move into the folder
+  document.getElementById("count").textContent = open.length + (open.length===1?" job":" jobs");
+  document.getElementById("list").innerHTML = open.length
+    ? open.map(card).join("")
+    : '<div class="foot" style="padding:30px 16px">No open jobs right now.</div>';
+  var sec = document.getElementById("doneSec");
+  if(done.length){
+    sec.hidden = false;
+    document.getElementById("doneCount").textContent = done.length;
+    document.getElementById("doneList").innerHTML = done.map(card).join("");  // keeps its own open/collapsed state
+  } else {
+    sec.hidden = true;
+    document.getElementById("doneList").innerHTML = "";
+  }
   paintProgress();   // re-apply the last live numbers so a redraw never flashes back to 0
 }
+(function(){
+  var t = document.getElementById("doneToggle"), body = document.getElementById("doneList");
+  if(!t || !body) return;
+  t.addEventListener("click", function(){
+    var willOpen = body.hidden;
+    body.hidden = !willOpen;
+    t.classList.toggle("open", willOpen);
+    t.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    if(willOpen) paintProgress();   // fill the bars the moment they're revealed
+  });
+})();
 
 /* live progress kept here so a re-render can restore it without waiting for the next poll */
 var PROG = {};
+function seedProg(s){   // a finished job reads full even before/without a backend reply
+  return s.completed ? { done:s.tasks, tasks:s.tasks, photos:0, pct:100 }
+                     : { done:0, tasks:s.tasks, photos:0, pct:0 };
+}
+SCOPES.forEach(function(s){ if(s.completed) PROG[s.turn] = seedProg(s); });
 function paintProgress(){
   Object.keys(PROG).forEach(function(turn){
     var p = PROG[turn];
@@ -320,8 +367,12 @@ function poll(){
       if(!j || !j.ok) return;
       SCOPES.forEach(function(s){
         var d = (j.scopes && j.scopes[s.turn]) || null;
-        var done = d ? d.done : 0, pct = s.tasks ? Math.round(done/s.tasks*100) : 0;
-        PROG[s.turn] = { done: done, tasks: s.tasks, photos: (d && d.photos) || 0, pct: pct };
+        if(!d){                                   // backend skipped this scope this cycle —
+          if(!PROG[s.turn]) PROG[s.turn] = seedProg(s);   // don't flash back to 0; keep the last known numbers
+          return;
+        }
+        var pct = s.tasks ? Math.round(d.done/s.tasks*100) : 0;
+        PROG[s.turn] = { done: d.done, tasks: s.tasks, photos: d.photos || 0, pct: pct };
       });
       paintProgress();
     }).catch(function(){});
