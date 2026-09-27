@@ -205,7 +205,7 @@ main{padding:18px 0 40px}
 </div>
 
 <script>
-var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": false, "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": false, "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": false, "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
+var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": true, "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": true, "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": true, "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
 var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "people": [], "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -315,21 +315,26 @@ function render(){
   document.getElementById("list").innerHTML = open.length
     ? open.map(card).join("")
     : '<div class="foot" style="padding:30px 16px">No open jobs right now.</div>';
-  var sec = document.getElementById("doneSec");
+  var sec = document.getElementById("doneSec"), t = document.getElementById("doneToggle"), body = document.getElementById("doneList");
   if(done.length){
     sec.hidden = false;
     document.getElementById("doneCount").textContent = done.length;
-    document.getElementById("doneList").innerHTML = done.map(card).join("");  // keeps its own open/collapsed state
+    body.innerHTML = done.map(card).join("");   // keeps its own open/collapsed state
+    if(!DONE_TOUCHED){                            // until the user taps it: open the folder when nothing's still active
+      var exp = open.length === 0;
+      body.hidden = !exp; t.classList.toggle("open", exp); t.setAttribute("aria-expanded", exp ? "true" : "false");
+    }
   } else {
-    sec.hidden = true;
-    document.getElementById("doneList").innerHTML = "";
+    sec.hidden = true; body.innerHTML = "";
   }
   paintProgress();   // re-apply the last live numbers so a redraw never flashes back to 0
 }
+var DONE_TOUCHED = false;
 (function(){
   var t = document.getElementById("doneToggle"), body = document.getElementById("doneList");
   if(!t || !body) return;
   t.addEventListener("click", function(){
+    DONE_TOUCHED = true;
     var willOpen = body.hidden;
     body.hidden = !willOpen;
     t.classList.toggle("open", willOpen);
