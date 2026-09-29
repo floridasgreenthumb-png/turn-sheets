@@ -116,6 +116,9 @@ main{padding:18px 0 40px}
 .assignbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
   margin:-2px 0 0;padding:8px 14px;background:var(--surface-2);border:1px solid var(--line-2);border-top:0;
   border-radius:0 0 14px 14px}
+.assignbar.unassigned{background:var(--flag-soft,rgba(154,91,18,.10));border-color:rgba(154,91,18,.30)}
+.assignbar.unassigned .asg-who b{color:var(--flag)}
+.assignbar.unassigned .asg-btn{border-color:var(--flag);color:var(--flag)}
 .asg-who{font-size:12.5px;color:var(--ink-2)}
 .asg-who b{color:var(--ink)}
 .asg-btn{padding:6px 12px;border:1px solid var(--brand);border-radius:8px;background:var(--surface);
@@ -221,6 +224,10 @@ var PEOPLE = [], ASSIGN = {}, ROSTER = [];
    zero people checked stays HIDDEN from all crew instead of reverting to "everyone".
    (Already in personId() normal form, so the backend stores it unchanged.) */
 var HIDDEN = "crew-none";
+/* sentinel meaning "open to the whole crew". Needed because the default is now
+   HIDDEN: a job with no assignment is shown to NO crew until the manager assigns it,
+   so "Everyone" must be an explicit stored choice, not just the absence of one. */
+var EVERYONE = "crew-all";
 function hubApi(op, extra){
   if(!HUB.backendUrl) return Promise.reject("no backend");
   return fetch(HUB.backendUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -300,10 +307,13 @@ function card(s){
     + '<span class="live" data-live="'+esc(s.turn)+'">not connected</span></div>'
     + '</a>';
   if(ROLE === "manager" && !s.completed && s.hasCrew){
-    var raw = ASSIGN[s.turn] || [];                       // may hold real ids and/or the HIDDEN sentinel
-    var named = raw.filter(function(x){ return x !== HIDDEN; });
-    var who = !raw.length ? "Everyone" : (named.length ? named.map(personName).join(", ") : "No one — hidden");
-    inner += '<div class="assignbar"><span class="asg-who">Crew: <b>'+esc(who)+'</b></span>'
+    var raw = ASSIGN[s.turn] || [];                       // may hold real ids and/or a sentinel
+    var named = raw.filter(function(x){ return x !== HIDDEN && x !== EVERYONE; });
+    var who;
+    if(!raw.length) who = "No one yet — not assigned";    // default: hidden from crew until assigned
+    else if(raw.indexOf(EVERYONE) !== -1) who = "Everyone";
+    else who = named.length ? named.map(personName).join(", ") : "No one — hidden";
+    inner += '<div class="assignbar'+(named.length||raw.indexOf(EVERYONE)!==-1?'':' unassigned')+'"><span class="asg-who">Crew: <b>'+esc(who)+'</b></span>'
       + '<button class="asg-btn" type="button" data-assign="'+esc(s.turn)+'">Choose who sees it</button></div>';
   }
   return '<div class="jobwrap">' + inner + '</div>';
@@ -313,8 +323,9 @@ function canSee(s){
   if(!s.hasCrew) return false;                   // crew + viewer need a no-price build
   if(ROLE === "viewer") return true;             // a viewer (super/client) sees all crew jobs
   var a = ASSIGN[s.turn] || s.assignedTo || [];   // backend assignment wins, spec is a fallback
-  if(!a.length) return true;                      // unassigned = open to all crew
-  return !!PERSON && a.indexOf(PERSON) !== -1;    // assigned = only those people (generic crew, PERSON="", won't match)
+  if(!a.length) return false;                     // NOT assigned yet = hidden from crew until the manager assigns it
+  if(a.indexOf(EVERYONE) !== -1) return true;     // manager explicitly opened it to the whole crew
+  return !!PERSON && a.indexOf(PERSON) !== -1;    // otherwise only the assigned people (generic crew, PERSON="", won't match)
 }
 function render(){
   var visible = SCOPES.filter(canSee);
@@ -511,17 +522,17 @@ function openAssign(turn){
   var s = SCOPES.filter(function(x){ return x.turn === turn; })[0]; if(!s) return;
   var people = PEOPLE.length ? PEOPLE : ROSTER.map(function(x){return {id:x.id, n:x.name};});
   var cur = ASSIGN[turn] || [];
-  var restricted = cur.length > 0;                          // has an entry (real people and/or the hidden sentinel)
+  var everyone = cur.indexOf(EVERYONE) !== -1;              // explicitly opened to the whole crew
   var rows = people.length ? people.map(function(p){
     var on = cur.indexOf(p.id) !== -1;
     return '<label class="asg-row"><input type="checkbox" data-pid="'+esc(p.id)+'"'+(on?" checked":"")+'><span>'+esc(p.n||p.name)+'</span></label>';
   }).join("") : '<div class="mm-empty">No crew yet — add people under &ldquo;Manage crew&rdquo; first.</div>';
   asgEl = openModal('<div class="mm-top"><h3>Who sees this job?</h3><button class="mm-x" data-asg="close" aria-label="Close">&times;</button></div>'
-    + '<p class="mm-p"><b>'+esc(s.h1)+'</b>'+(s.co?' &middot; Change Order #'+s.co:'')+'</p>'
-    + '<label class="asg-row asg-mode"><input type="radio" name="asgmode" value="all" data-asg="mode"'+(restricted?"":" checked")+'>'
+    + '<p class="mm-p"><b>'+esc(s.h1)+'</b>'+(s.co?' &middot; Change Order #'+s.co:'')+'<br>A job stays hidden from the crew until you assign it here.</p>'
+    + '<label class="asg-row asg-mode"><input type="radio" name="asgmode" value="all" data-asg="mode"'+(everyone?" checked":"")+'>'
       + '<span><b>Everyone on the crew</b><br><small>Any crew member can open this job.</small></span></label>'
-    + '<label class="asg-row asg-mode"><input type="radio" name="asgmode" value="only" data-asg="mode"'+(restricted?" checked":"")+'>'
-      + '<span><b>Only the people I check</b><br><small>Everyone else — including unchecked people — won&rsquo;t see it.</small></span></label>'
+    + '<label class="asg-row asg-mode"><input type="radio" name="asgmode" value="only" data-asg="mode"'+(everyone?"":" checked")+'>'
+      + '<span><b>Only the people I check</b><br><small>Everyone else — including unchecked people — won&rsquo;t see it. Check no one to keep it hidden.</small></span></label>'
     + '<div class="asg-list" id="asgList">'+rows+'</div>'
     + '<div class="mm-err" id="asgErr"></div>'
     + '<div class="mm-acts"><button class="mm-btn ghost" data-asg="close">Cancel</button><button class="mm-btn" data-asg="save" data-turn="'+esc(turn)+'">Save</button></div>');
@@ -545,7 +556,7 @@ function asgClick(e){
     var err = document.getElementById("asgErr");
     var ids;
     if(asgMode() === "all"){
-      ids = [];                                             // Everyone → clears the restriction (open to all crew)
+      ids = [EVERYONE];                                     // Everyone → explicit "whole crew" marker (not just "no assignment")
     } else {
       ids = [].slice.call(document.querySelectorAll("#asgList input:checked")).map(function(c){ return c.dataset.pid; });
       if(!ids.length) ids = [HIDDEN];                       // restricted but nobody checked → hide from all crew (don't reopen)
