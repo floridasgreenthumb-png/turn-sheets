@@ -98,6 +98,7 @@ main{padding:18px 0 40px}
 .prog .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
 .prog .live.on{color:var(--brand)}
 .prog .live.on::before{background:var(--brand)}
+.prog .finished{display:inline-flex;align-items:center;gap:4px;color:var(--brand);font-size:12px;font-weight:600;text-align:right}
 .rolebadge{display:inline-block;margin:0 2px 10px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:3px 11px}
 .rolebadge:empty{display:none}
 .alertsbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;
@@ -212,7 +213,7 @@ main{padding:18px 0 40px}
 </div>
 
 <script>
-var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "completedDate": "2026-09-23", "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966CO", "turnLabel": "487966", "co": 1, "completed": false, "completedDate": "", "assignedTo": [], "tasks": 4, "total": 455.76, "liveUrl": "geese-trail-co/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": true, "completedDate": "2026-09-24", "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "completedDate": "", "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "3167 Bridge Haven Dr", "city": "Wesley Chapel, FL 33543", "turn": "FL19663", "turnLabel": "FL19663", "co": 0, "completed": false, "completedDate": "", "assignedTo": [], "tasks": 3, "total": 382.55, "liveUrl": "bridge-haven/", "hasCrew": true}, {"h1": "3927 Constantine Loop", "city": "Wesley Chapel, FL 33543", "turn": "152779", "turnLabel": "152779", "co": 0, "completed": false, "completedDate": "", "assignedTo": [], "tasks": 34, "total": 1870.94, "liveUrl": "constantine-loop/", "hasCrew": true}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": true, "completedDate": "", "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": true, "completedDate": "2026-09-25", "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
+var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-09-23", "assignedTo": [], "tasks": 37, "total": 1976.9, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966CO", "turnLabel": "487966", "co": 1, "completed": false, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 4, "total": 455.76, "liveUrl": "geese-trail-co/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": true, "completedAt": "", "completedDate": "2026-09-24", "assignedTo": [], "tasks": 21, "total": 1311.78, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "completedAt": "Sep 27, 2026", "completedDate": "", "assignedTo": [], "tasks": 51, "total": 3117.76, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "3167 Bridge Haven Dr", "city": "Wesley Chapel, FL 33543", "turn": "FL19663", "turnLabel": "FL19663", "co": 0, "completed": false, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 3, "total": 382.55, "liveUrl": "bridge-haven/", "hasCrew": true}, {"h1": "3927 Constantine Loop", "city": "Wesley Chapel, FL 33543", "turn": "152779", "turnLabel": "152779", "co": 0, "completed": false, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 34, "total": 1870.94, "liveUrl": "constantine-loop/", "hasCrew": true}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": true, "completedAt": "Sep 27, 2026", "completedDate": "", "assignedTo": [], "tasks": 6, "total": 114.74, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-09-25", "assignedTo": [], "tasks": 9, "total": 704.0, "liveUrl": "atlantic-beach/", "hasCrew": true}];
 var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "people": [], "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c"};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -313,7 +314,10 @@ function card(s){
     + (ROLE === "manager" ? '<span class="chip total">'+money(s.total)+'</span>' : '') + '</div>'
     + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
     + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
-    + '<span class="live" data-live="'+esc(s.turn)+'">not connected</span></div>'
+    + (s.completed
+        ? '<span class="finished" data-fin="'+esc(s.turn)+'">'+(s.completedAt ? '&#10003; Finished '+esc(s.completedAt) : '')+'</span>'
+        : '<span class="live" data-live="'+esc(s.turn)+'">not connected</span>')
+    + '</div>'
     + '</a>';
   if(ROLE === "manager" && !s.completed && s.hasCrew){
     var raw = ASSIGN[s.turn] || [];                       // may hold real ids and/or a sentinel
@@ -375,20 +379,33 @@ var DONE_TOUCHED = false;
 /* live progress kept here so a re-render can restore it without waiting for the next poll */
 var PROG = {};
 function seedProg(s){   // a finished job reads full even before/without a backend reply
-  return s.completed ? { done:s.tasks, tasks:s.tasks, photos:0, pct:100 }
-                     : { done:0, tasks:s.tasks, photos:0, pct:0 };
+  return s.completed ? { done:s.tasks, tasks:s.tasks, photos:0, pct:100, last:null }
+                     : { done:0, tasks:s.tasks, photos:0, pct:0, last:null };
 }
 SCOPES.forEach(function(s){ if(s.completed) PROG[s.turn] = seedProg(s); });
+function fmtWhen(ts){   // unix seconds -> "Sep 23, 2026 · 8:50 PM" (Tampa time)
+  try{
+    var s = new Date(ts*1000).toLocaleString("en-US",{timeZone:"America/New_York",
+      month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit"});
+    return s.replace(/, (\d+:\d+)/, " · $1");
+  }catch(e){ return ""; }
+}
 function paintProgress(){
   Object.keys(PROG).forEach(function(turn){
     var p = PROG[turn];
     var bar = document.querySelector('[data-bar="'+turn+'"]');
     var txt = document.querySelector('[data-done="'+turn+'"]');
     var live = document.querySelector('[data-live="'+turn+'"]');
+    var fin = document.querySelector('[data-fin="'+turn+'"]');
     if(bar) bar.style.width = p.pct + "%";
     if(txt) txt.innerHTML = '<span class="mono">'+p.done+'/'+p.tasks+'</span> done'
       + (p.photos ? ' &middot; <span class="mono">'+p.photos+'</span> photos' : '');
     if(live){ live.textContent = "live"; live.className = "live on"; }
+    // completed card: show the finish time. A spec completedAt (already rendered) wins;
+    // otherwise use the last-activity timestamp the backend records automatically.
+    if(fin && !fin.textContent.trim() && p.last && p.last[1]){
+      fin.innerHTML = '&#10003; Finished ' + esc(fmtWhen(p.last[1]));
+    }
   });
 }
 /* live progress: ask Steve's backend for done-counts + photo counts */
@@ -406,7 +423,7 @@ function poll(){
           return;
         }
         var pct = s.tasks ? Math.round(d.done/s.tasks*100) : 0;
-        PROG[s.turn] = { done: d.done, tasks: s.tasks, photos: d.photos || 0, pct: pct };
+        PROG[s.turn] = { done: d.done, tasks: s.tasks, photos: d.photos || 0, pct: pct, last: d.last || null };
       });
       paintProgress();
     }).catch(function(){});
