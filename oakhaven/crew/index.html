@@ -752,7 +752,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
             stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4"
             transform="rotate(-90 23 23)"></circle>
         </svg>
-        <div class="rt"><div class="n mono" id="ringN">0/33</div><div class="l">done</div></div>
+        <div class="rt"><div class="n mono" id="ringN">0/34</div><div class="l">done</div></div>
       </div>
     </div>
 
@@ -782,7 +782,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div class="bar">
   <div class="bar-in">
-    <div class="lbl" id="barN">0 of 33</div>
+    <div class="lbl" id="barN">0 of 34</div>
     <div class="pb"><i id="barI" style="width:0%"></i></div>
     <div class="lbl" id="barPct">0%</div>
     <button class="up" id="toTop" aria-label="Back to top">
@@ -798,7 +798,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17zM8 7h4M8 10h4"/></svg>
     Receipts &amp; payout
   </button>
-  <div class="legal">Progress Tampa &middot; created Oct 5 &middot; landscaping removed &middot; 33 tasks</div>
+  <div class="legal">Progress Tampa &middot; created Oct 5 &middot; 34 tasks</div>
 </div>
 
 <script>
@@ -859,7 +859,8 @@ var T = [
  [30, "appl", "Tighten loose freezer handle", ["Kitchen-01", "Dining Room-01"], "Freezer handle is loose — tighten it.", 1, 0, 30],
  [31, "common", "Paint post & replace address numbers", ["Front Elevation (Main)-01"], "Paint the post and change out the address numbers.", 3, 0, 31],
  [32, "common", "Remove debris (chair out front)", ["Front Elevation (Main)-01"], "Remove debris around the property — mainly the chair out front.", 1, 0, 32],
- [33, "floor", "Add missing quarter round", ["Bathroom-01"], "A piece of quarter round is missing — add it.", 1, 0, 33]
+ [33, "floor", "Add missing quarter round", ["Bathroom-01"], "A piece of quarter round is missing — add it.", 1, 0, 33],
+ [34, "land", "Clean algae growth & chlorine-wash patio/slab", ["Front Elevation (Main)-01", "Back Elevation-01"], "Algae growth on the upper front by the two dormer windows and on top of the garage — clean it off. Back patio and front slab could use a little chlorine.", 1, 0, 34]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -2406,7 +2407,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261005-151336";          // stamped in at publish time
+  var CAM_BUILD = "20261005-151524";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
