@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Gmail__*",
+      "mcp__Meridian_Connector_for_QuickBooks__*",
+      "mcp__Intuit_QuickBooks__*",
+      "mcp__claude-code-remote__*",
+      "ArtifactData",
+      "Artifact",
+      "ToolSearch",
+      "ReadNotifications",
+      "PushNotification",
+      "Agent",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(git:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(echo:*)",
+      "Bash(head:*)",
+      "Bash(grep:*)",
+      "Bash(unzip:*)",
+      "Bash(pdftotext:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}
