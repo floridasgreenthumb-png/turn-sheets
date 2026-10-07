@@ -12,6 +12,13 @@ and Gmail.
 - Search: `from:DoNotReply@yardi.com subject:Remittance -label:qb-payment-recorded`
   Oldest first. At most 25 remittances per night.
 
+## Checks (all customers, all sources)
+- Do NOT enter a check payment unless it has a cleared date. The Coupa export only
+  shows the issue date ("Check - #1234 on MM/DD/YYYY"), which is not a cleared date,
+  so Coupa check payments are never entered. Leave them alone (no discount line, no
+  payment) and list them in the summary as "check, not cleared".
+- Check payments already entered on 2026-10-07 stay as they are (user's decision).
+
 ## Fixed values
 - Customer: Progress Residential (QuickBooks customer Id `3154`).
 - Deposit to, by payment date (bank switch was **July 2, 2026**):
