@@ -70,3 +70,8 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
      PrivateNote "Progress Residential <method> #<payment_no> (from Coupa
      export). Invoices ...", deposit account by date per the rule above.
 4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
+
+## American Homes 4 Rent (not automated yet — user will say when)
+- AMH ACH payments ("ACH Payment Sent" from cdr@yardi.com, details in PDF attachments)
+  are deposited to **American Express Business Checking** (account Id `265`, created
+  2026-10-07). Never deposit AMH payments to MID FLA or liberty bank.
