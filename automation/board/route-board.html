@@ -1,0 +1,357 @@
+<title>Green Thumb Route Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: job list on the left, a pin map on the right; on phones the two
+   swap behind tabs and the route bar sits at the bottom. Same faces as the
+   crew hub (Barlow Semi Condensed / Barlow / Plex Mono). */
+:root{
+  --bg:#eef1ea; --surface:#fbfcf8; --line:#d5dbcd; --ink:#1d2621; --muted:#5d6a61;
+  --accent:#d4561d;            /* marking-paint orange: the route */
+  --accent-ink:#ffffff;
+  --progress:#2f6aa8; --amh:#b23a48; --maymont:#6d4fa3;
+  --st-new:#b7791f; --st-open:#2f7d4f; --st-check:#8a6d3b; --st-late:#b42318;
+  --map-bg:#e4e9df; --map-grid:#cfd7c8; --map-label:#6f7c72;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a16; --surface:#1c241f; --line:#2f3a33; --ink:#e7ece6; --muted:#9aa79e;
+  --accent:#f0743a; --accent-ink:#1a0d06;
+  --progress:#6ea4dd; --amh:#e07583; --maymont:#a993d6;
+  --st-new:#e0a94a; --st-open:#5fbf86; --st-check:#c9a96e; --st-late:#f07a6e;
+  --map-bg:#18201b; --map-grid:#26302a; --map-label:#7f8c83; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a16; --surface:#1c241f; --line:#2f3a33; --ink:#e7ece6; --muted:#9aa79e;
+  --accent:#f0743a; --accent-ink:#1a0d06;
+  --progress:#6ea4dd; --amh:#e07583; --maymont:#a993d6;
+  --st-new:#e0a94a; --st-open:#5fbf86; --st-check:#c9a96e; --st-late:#f07a6e;
+  --map-bg:#18201b; --map-grid:#26302a; --map-label:#7f8c83; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);margin:0}
+.wrap{display:grid;grid-template-rows:auto 1fr auto;height:100%;padding-inline:16px;box-sizing:border-box}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;padding-block:14px 10px}
+h1{font:700 1.55rem/1.1 var(--f-display);letter-spacing:.01em;margin:0}
+.sync{font:400 .78rem var(--f-mono);color:var(--muted)}
+.tabs{display:none;gap:4px;margin-left:auto}
+.tabs button{font:600 .85rem var(--f-display);text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-height:0;padding-bottom:12px}
+.pane{min-height:0;min-width:0;display:flex;flex-direction:column}
+.filters{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:10px}
+.chip{font:600 .78rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:4px 10px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+#q{flex:1 1 160px;min-width:0;font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.list{overflow:auto;min-height:0;border-top:1px solid var(--line)}
+.job{display:grid;grid-template-columns:28px 1fr auto;gap:4px 10px;padding:10px 4px;border-bottom:1px solid var(--line);align-items:start;cursor:pointer}
+.job:hover{background:var(--surface)}
+.job.sel{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.job input{margin:3px 0 0 4px;width:18px;height:18px;accent-color:var(--accent)}
+.job .top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0}
+.badge{font:700 .7rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:1px 6px;border-radius:4px}
+.b-progress{background:var(--progress)} .b-amh{background:var(--amh)} .b-maymont{background:var(--maymont)}
+.portal{font:500 .72rem var(--f-mono);color:var(--muted)}
+.addr{font:600 1rem/1.25 var(--f-display);min-width:0;overflow-wrap:anywhere}
+.meta{grid-column:2/4;font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.amt{font:500 .9rem var(--f-mono);font-variant-numeric:tabular-nums}
+.pill{font:600 .7rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.s-new{color:var(--st-new)} .s-open{color:var(--st-open)} .s-approved{color:var(--st-open)} .s-check{color:var(--st-check)}
+.late{color:var(--st-late);font-weight:600}
+.done{font:600 .7rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer}
+.done:hover{color:var(--ink);border-color:var(--ink)}
+.approx{font:500 .72rem var(--f-mono);color:var(--st-check)}
+.empty{padding:28px 8px;color:var(--muted);max-width:44ch}
+.empty b{color:var(--ink)}
+.mapbox{position:relative;flex:1;min-height:320px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--map-bg);touch-action:none}
+#map{width:100%;height:100%;display:block;cursor:grab}
+.maptools{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px}
+.maptools button{width:32px;height:32px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;font:600 1.1rem var(--f-body);cursor:pointer}
+.legend{position:absolute;left:8px;bottom:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:500 .72rem var(--f-mono);color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:.82rem;max-width:240px;box-shadow:0 4px 14px rgb(0 0 0 / .12)}
+.routebar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 12px;margin-bottom:12px;border-radius:10px;background:var(--ink);color:var(--bg)}
+.routebar .count{font:700 1.05rem var(--f-display);letter-spacing:.02em}
+.routebar .est{font:400 .8rem var(--f-mono);opacity:.8}
+.routebar .stops{flex:1 1 100%;font-size:.82rem;opacity:.85;overflow-wrap:anywhere}
+.btn{font:700 .85rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btn.go{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--bg);border:1px solid color-mix(in srgb,var(--bg) 40%,transparent)}
+.btn:focus-visible,.chip:focus-visible,.tabs button:focus-visible,.job:focus-visible,.maptools button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.home{font-size:.8rem;color:var(--muted);padding-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.home input{font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:0;flex:1 1 200px}
+@media (max-width:760px){
+  .tabs{display:flex}
+  main{grid-template-columns:1fr}
+  main[data-tab="list"] .pane.mapp{display:none}
+  main[data-tab="map"] .pane.listp{display:none}
+  .mapbox{min-height:60vh}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Route Board</h1>
+    <span class="sync" id="sync">Waiting for job data…</span>
+    <div class="tabs" role="group" aria-label="View">
+      <button id="tabList" aria-pressed="true">List</button>
+      <button id="tabMap" aria-pressed="false">Map</button>
+    </div>
+  </header>
+
+  <main id="main" data-tab="list">
+    <section class="pane listp" aria-label="Open jobs">
+      <div class="filters" id="filters">
+        <input id="q" type="search" placeholder="Search address, PO, WO, tenant…" aria-label="Search jobs">
+      </div>
+      <div class="list" id="list">
+        <div class="empty" id="empty"><b>No open jobs loaded yet.</b><br>Every night at 9&nbsp;PM the board fills with the jobs currently open on Progress (Coupa, Dispatch, Relay), American Homes 4 Rent and Maymont. Tick jobs to build a route.</div>
+      </div>
+      <div class="home">
+        <label for="homeAddr">Start from</label>
+        <input id="homeAddr" type="text" value="">
+      </div>
+    </section>
+
+    <section class="pane mapp" aria-label="Map">
+      <div class="mapbox" id="mapbox">
+        <svg id="map" role="img" aria-label="Map of open jobs"></svg>
+        <div class="maptools">
+          <button id="zin" aria-label="Zoom in">+</button>
+          <button id="zout" aria-label="Zoom out">−</button>
+          <button id="zfit" aria-label="Fit all jobs">⤢</button>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="routebar" id="routebar" hidden>
+    <span class="count" id="rcount"></span>
+    <span class="est" id="rest"></span>
+    <span style="flex:1"></span>
+    <button class="btn ghost" id="rclear">Clear</button>
+    <span id="rlinks" style="display:flex;gap:8px;flex-wrap:wrap"></span>
+    <div class="stops" id="rstops"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+const COMPANY = {progress:{name:"Progress",cls:"b-progress",color:"--progress"},amh:{name:"AMH",cls:"b-amh",color:"--amh"},maymont:{name:"Maymont",cls:"b-maymont",color:"--maymont"}};
+const STATUS = {new:"New",open:"Open",approved:"Approved",check:"Check status"};
+const DEFAULT_HOME = {address:"8424 Lagerfeld Dr, Land O Lakes, FL 34637", lat:28.279425794589, lng:-82.475376417704};
+let jobs = [], plan = {}, home = DEFAULT_HOME, meta = null, db = null;
+let fCompany = new Set(), fStatus = new Set(), q = "", showDone = false;
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const money = n => n == null || n === "" ? "" : "$" + Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const today = new Date().toISOString().slice(0,10);
+const fullAddr = j => [j.street, j.city, (j.state||"FL") + " " + (j.zip||"")].filter(Boolean).join(", ").trim();
+
+/* ---------- filters ---------- */
+function buildFilters(){
+  const f = $("filters"); [...f.querySelectorAll(".chip")].forEach(c=>c.remove());
+  const add = (label,set,key,dotVar) => {
+    const b = document.createElement("button"); b.className="chip"; b.type="button";
+    b.setAttribute("aria-pressed", set.has(key) ? "true":"false");
+    b.innerHTML = (dotVar?`<span class="dot" style="background:var(${dotVar})"></span>`:"") + label;
+    b.onclick = () => { set.has(key)?set.delete(key):set.add(key); render(); buildFilters(); };
+    f.insertBefore(b, $("q"));
+  };
+  const present = new Set(jobs.map(j=>j.company));
+  Object.entries(COMPANY).forEach(([k,c]) => present.has(k) && add(c.name,fCompany,k,c.color));
+  const st = new Set(jobs.map(j=>j.status));
+  Object.entries(STATUS).forEach(([k,l]) => st.has(k) && add(l,fStatus,k));
+  const nd = jobs.filter(j=>plan[j.id]?.done).length;
+  if (nd){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.setAttribute("aria-pressed",showDone?"true":"false");
+    b.textContent=`Show done (${nd})`; b.onclick=()=>{showDone=!showDone; buildFilters(); render();}; $("filters").insertBefore(b,$("q")); }
+}
+$("q").addEventListener("input", e => { q = e.target.value.toLowerCase().trim(); render(); });
+
+function visible(){
+  return jobs.filter(j => (showDone || !plan[j.id]?.done) && (!fCompany.size || fCompany.has(j.company)) && (!fStatus.size || fStatus.has(j.status))
+    && (!q || [j.street,j.city,j.zip,j.ref,j.project,j.tenant,j.title,j.items].join(" ").toLowerCase().includes(q)))
+    .sort((a,b) => (a.needBy||"9999").localeCompare(b.needBy||"9999") || (a.received||"").localeCompare(b.received||""));
+}
+
+/* ---------- list ---------- */
+function render(){
+  const list = $("list"), v = visible();
+  [...list.querySelectorAll(".job")].forEach(n=>n.remove());
+  $("empty").hidden = jobs.length > 0;
+  if (jobs.length && !v.length){ $("empty").hidden=false; $("empty").innerHTML="<b>No jobs match these filters.</b> Clear a filter or the search box."; }
+  for (const j of v){
+    const sel = !!plan[j.id]?.route;
+    const row = document.createElement("div"); row.className="job"+(sel?" sel":""); row.tabIndex=0; row.dataset.id=j.id;
+    const late = j.needBy && j.needBy < today;
+    const c = COMPANY[j.company]||{name:j.company,cls:""};
+    row.innerHTML = `<input type="checkbox" aria-label="Add to route" ${sel?"checked":""} ${j.lat==null?"disabled title='No map location yet'":""}>
+      <div style="min-width:0"><div class="top"><span class="badge ${c.cls}">${esc(c.name)}</span><span class="portal">${esc(j.portal||"")} ${esc(j.ref||"")}</span></div>
+      <div class="addr">${esc(fullAddr(j)||j.shortAddress||"Address not in email yet")}</div></div>
+      <div class="right"><span class="pill s-${esc(j.status)}">${esc(plan[j.id]?.done?"Done":(STATUS[j.status]||j.status))}</span><span class="amt">${money(j.amount)}</span><button class="done" type="button">${plan[j.id]?.done?"Undo":"Done"}</button></div>
+      <div class="meta">${esc(j.title||j.items||"")}${j.tenant?` · ${esc(j.tenant)}`:""}${j.needBy?` · <span class="${late?"late":""}">need by ${esc(j.needBy)}</span>`:""}${j.statusNote?` · ${esc(j.statusNote)}`:""}${j.geo==="approx"?` · <span class="approx">pin approx.</span>`:""}${j.lat==null?` · <span class="approx">not on map</span>`:""}</div>`;
+    row.querySelector("input").onclick = e => { e.stopPropagation(); toggleRoute(j.id); };
+    row.querySelector(".done").onclick = e => { e.stopPropagation(); setPlan(j.id,{done:!plan[j.id]?.done, route:false}); };
+    row.onclick = () => focusJob(j.id);
+    row.onkeydown = e => { if(e.key===" "||e.key==="Enter"){ e.preventDefault(); if(j.lat!=null) toggleRoute(j.id); } };
+    list.appendChild(row);
+  }
+  drawMap(); renderRoute();
+}
+function esc(s){ return String(s??"").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
+
+/* ---------- route / done ---------- */
+async function setPlan(id, patch){
+  plan[id] = {...(plan[id]||{}), ...patch, at:new Date().toISOString()};
+  buildFilters(); render();
+  if (db) { try { await db.doc("plan/"+id).set(plan[id]); } catch(e){ /* keep local */ } }
+}
+function toggleRoute(id){ setPlan(id, {route: !plan[id]?.route}); }
+$("rclear").onclick = async () => {
+  const ids = Object.keys(plan).filter(k=>plan[k].route);
+  for (const k of ids) await setPlan(k,{route:false});
+};
+const R = 3958.8, rad = d => d*Math.PI/180;
+function miles(a,b){ const dLa=rad(b.lat-a.lat), dLo=rad(b.lng-a.lng); const h=Math.sin(dLa/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function orderStops(stops){
+  // nearest-neighbour from home, then 2-opt clean-up (open path, start fixed at home)
+  let rest=[...stops], path=[], cur=home;
+  while(rest.length){ let bi=0,bd=Infinity; rest.forEach((s,i)=>{const d=miles(cur,s); if(d<bd){bd=d;bi=i;}}); cur=rest.splice(bi,1)[0]; path.push(cur); }
+  const len = p => p.reduce((t,s,i)=>t+miles(i?p[i-1]:home,s),0);
+  let improved=true, guard=0;
+  while(improved && guard++<50){ improved=false;
+    for(let i=0;i<path.length-1;i++) for(let k=i+1;k<path.length;k++){
+      const np=[...path.slice(0,i),...path.slice(i,k+1).reverse(),...path.slice(k+1)];
+      if(len(np)+1e-9<len(path)){ path=np; improved=true; } } }
+  return {path, dist:len(path)};
+}
+let routePath = [];
+function renderRoute(){
+  const stops = jobs.filter(j => plan[j.id]?.route && j.lat!=null);
+  $("routebar").hidden = !stops.length;
+  if(!stops.length){ routePath=[]; drawRouteLayer(); return; }
+  const {path,dist} = orderStops(stops); routePath = path;
+  $("rcount").textContent = `${path.length} stop${path.length>1?"s":""} on route`;
+  $("rest").textContent = `≈ ${Math.round(dist*1.3)} mi driving (estimate)`;
+  $("rstops").textContent = path.map((s,i)=>`${i+1}. ${s.street||s.shortAddress}`).join("  ·  ");
+  const links=$("rlinks"); links.innerHTML="";
+  // Google Maps takes origin + destination + up to 9 waypoints per link: split long days into legs
+  const pts = [{q:home.address}, ...path.map(s=>({q:fullAddr(s)||`${s.lat},${s.lng}`}))];
+  const legs=[]; for(let i=0;i<pts.length-1;i+=10){ legs.push(pts.slice(i, Math.min(i+11, pts.length))); }
+  legs.forEach((leg,n)=>{
+    const u=new URL("https://www.google.com/maps/dir/"); u.searchParams.set("api","1");
+    u.searchParams.set("origin",leg[0].q); u.searchParams.set("destination",leg[leg.length-1].q);
+    const w=leg.slice(1,-1).map(p=>p.q); if(w.length) u.searchParams.set("waypoints",w.join("|"));
+    u.searchParams.set("travelmode","driving");
+    const a=document.createElement("a"); a.className="btn go"; a.href=u.toString(); a.target="_blank"; a.rel="noopener";
+    a.textContent = legs.length>1 ? `Open leg ${n+1} in Google Maps` : "Open route in Google Maps"; links.appendChild(a);
+  });
+  drawRouteLayer();
+}
+
+/* ---------- map (SVG, no tiles: pins, towns, route) ---------- */
+const svg=$("map"), NS="http://www.w3.org/2000/svg";
+let view={x:0,y:0,k:1}, base=null;
+const proj = (lat,lng) => { const c=Math.cos(rad(28.1)); return {x:(lng+83)*c*1000, y:(29-lat)*1000}; };
+function fit(){
+  const pts=[home,...jobs.filter(j=>j.lat!=null)];
+  const P=pts.map(p=>proj(p.lat,p.lng)); const xs=P.map(p=>p.x), ys=P.map(p=>p.y);
+  let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const pad=Math.max(20,(x1-x0+y1-y0)*.08); base={x:x0-pad,y:y0-pad,w:Math.max(60,x1-x0+2*pad),h:Math.max(60,y1-y0+2*pad)};
+  view={x:0,y:0,k:1}; applyView();
+}
+function applyView(){ if(!base)return; const w=base.w/view.k,h=base.h/view.k;
+  const r=svg.getBoundingClientRect(); const ar=(r.width||1)/(r.height||1); let W=w,H=h; if(W/H<ar) W=H*ar; else H=W/ar;
+  const cx=base.x+base.w/2+view.x, cy=base.y+base.h/2+view.y; svg.setAttribute("viewBox",`${cx-W/2} ${cy-H/2} ${W} ${H}`); svg.dataset.unit = W/(r.width||1); drawMap(true); }
+function el(n,a,p){ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); (p||svg).appendChild(e); return e; }
+function drawMap(keep){
+  if(!base && (jobs.some(j=>j.lat!=null))) { fit(); return; }
+  svg.innerHTML=""; if(!base){ base={x:proj(28.5,-82.8).x,y:proj(28.5,-82.8).y,w:400,h:400}; applyView(); return; }
+  const u=Number(svg.dataset.unit)||1, vb=svg.viewBox.baseVal;
+  // grid every 0.1 degree, labelled sparsely
+  for(let lat=27.0;lat<=29.0;lat+=0.1){ const y=proj(lat,-83).y; if(y<vb.y||y>vb.y+vb.height) continue; el("line",{x1:vb.x,x2:vb.x+vb.width,y1:y,y2:y,stroke:css("--map-grid"),"stroke-width":u}); }
+  for(let lng=-83.2;lng<=-81.6;lng+=0.1){ const x=proj(28,lng).x; if(x<vb.x||x>vb.x+vb.width) continue; el("line",{y1:vb.y,y2:vb.y+vb.height,x1:x,x2:x,stroke:css("--map-grid"),"stroke-width":u}); }
+  // town labels: centre of the open jobs in each city
+  const towns={}; jobs.filter(j=>j.lat!=null&&j.city).forEach(j=>{const k=j.city.toUpperCase(); (towns[k]=towns[k]||[]).push(j);});
+  Object.entries(towns).forEach(([name,arr])=>{ const lat=arr.reduce((t,j)=>t+j.lat,0)/arr.length, lng=arr.reduce((t,j)=>t+j.lng,0)/arr.length, p=proj(lat,lng);
+    const t=el("text",{x:p.x,y:p.y-14*u,"text-anchor":"middle","font-size":11*u,"font-family":css("--f-display"),"font-weight":"600","letter-spacing":.08*11*u,fill:css("--map-label")}); t.textContent=name; });
+  // scale bar: 5 miles
+  const s0=proj(28,-82), s1=proj(28,-82+5/(69.17*Math.cos(rad(28)))); const sw=s1.x-s0.x;
+  const sx=vb.x+12*u, sy=vb.y+vb.height-34*u; el("line",{x1:sx,x2:sx+sw,y1:sy,y2:sy,stroke:css("--muted"),"stroke-width":2*u});
+  const st=el("text",{x:sx,y:sy-5*u,"font-size":10*u,"font-family":css("--f-mono"),fill:css("--muted")}); st.textContent="5 mi";
+  el("g",{id:"routeLayer"});
+  // home
+  const h=proj(home.lat,home.lng); el("rect",{x:h.x-6*u,y:h.y-6*u,width:12*u,height:12*u,fill:css("--ink"),transform:`rotate(45 ${h.x} ${h.y})`});
+  const ht=el("text",{x:h.x+10*u,y:h.y+4*u,"font-size":11*u,"font-family":css("--f-display"),"font-weight":"700",fill:css("--ink")}); ht.textContent="START";
+  // pins
+  const vis=new Set(visible().map(j=>j.id));
+  jobs.filter(j=>j.lat!=null).forEach(j=>{ const p=proj(j.lat,j.lng), on=vis.has(j.id), sel=!!plan[j.id]?.route;
+    const c=el("circle",{cx:p.x,cy:p.y,r:(sel?7.5:6)*u,fill:css((COMPANY[j.company]||{}).color||"--muted"),stroke:sel?css("--accent"):css("--surface"),"stroke-width":(sel?3:1.5)*u,opacity:on?1:.25,"stroke-dasharray":j.geo==="approx"?`${2*u} ${2*u}`:"none"});
+    c.style.cursor="pointer"; c.dataset.id=j.id;
+    c.addEventListener("click",ev=>{ev.stopPropagation(); toggleRoute(j.id);});
+    c.addEventListener("pointerenter",ev=>showTip(j,ev)); c.addEventListener("pointerleave",()=>$("tip").hidden=true);
+  });
+  drawRouteLayer();
+  const lg=$("legend"); lg.innerHTML = Object.entries(COMPANY).filter(([k])=>jobs.some(j=>j.company===k)).map(([k,c])=>`<span><i style="background:var(${c.color})"></i>${c.name}</span>`).join("")+`<span>◆ start · dashed = approx.</span>`;
+}
+function drawRouteLayer(){
+  const g=svg.querySelector("#routeLayer"); if(!g) return; g.innerHTML=""; if(!routePath.length) return;
+  const u=Number(svg.dataset.unit)||1; const pts=[home,...routePath].map(s=>proj(s.lat,s.lng));
+  el("polyline",{points:pts.map(p=>`${p.x},${p.y}`).join(" "),fill:"none",stroke:css("--accent"),"stroke-width":3*u,"stroke-linejoin":"round","stroke-linecap":"round",opacity:.85},g);
+  routePath.forEach((s,i)=>{ const p=proj(s.lat,s.lng); el("circle",{cx:p.x+9*u,cy:p.y-9*u,r:8*u,fill:css("--accent")},g);
+    const t=el("text",{x:p.x+9*u,y:p.y-5.5*u,"text-anchor":"middle","font-size":10*u,"font-weight":"700","font-family":css("--f-mono"),fill:css("--accent-ink")},g); t.textContent=i+1; });
+}
+function showTip(j,ev){ const t=$("tip"), r=$("mapbox").getBoundingClientRect();
+  t.innerHTML=`<b>${esc((COMPANY[j.company]||{}).name||"")} ${esc(j.ref||"")}</b><br>${esc(fullAddr(j))}<br>${esc(j.title||j.items||"")}${j.amount!=null?"<br>"+money(j.amount):""}<br><span class="portal">tap pin to ${plan[j.id]?.route?"remove from":"add to"} route</span>`;
+  t.hidden=false; t.style.left=Math.min(ev.clientX-r.left+12, r.width-250)+"px"; t.style.top=(ev.clientY-r.top+12)+"px"; }
+function focusJob(id){ const j=jobs.find(x=>x.id===id); if(!j||j.lat==null||!base) return; const p=proj(j.lat,j.lng);
+  view.k=Math.max(view.k,3); view.x=p.x-(base.x+base.w/2); view.y=p.y-(base.y+base.h/2); applyView();
+  if(matchMedia("(max-width:760px)").matches) setTab("map"); }
+// pan / zoom
+let drag=null; const pts=new Map();
+svg.addEventListener("pointerdown",e=>{ svg.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y,d:null,k:view.k}; if(pts.size===2){const [a,b]=[...pts.values()]; drag.d=Math.hypot(a.x-b.x,a.y-b.y);} });
+svg.addEventListener("pointermove",e=>{ if(!drag) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); const u=Number(svg.dataset.unit)||1;
+  if(pts.size===2&&drag.d){const [a,b]=[...pts.values()]; view.k=Math.min(40,Math.max(.5,drag.k*Math.hypot(a.x-b.x,a.y-b.y)/drag.d)); applyView(); return;}
+  view.x=drag.vx-(e.clientX-drag.x)*u; view.y=drag.vy-(e.clientY-drag.y)*u; applyView(); });
+const end=e=>{ pts.delete(e.pointerId); if(!pts.size) drag=null; };
+svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
+svg.addEventListener("wheel",e=>{ e.preventDefault(); view.k=Math.min(40,Math.max(.5,view.k*(e.deltaY<0?1.2:1/1.2))); applyView(); },{passive:false});
+$("zin").onclick=()=>{view.k=Math.min(40,view.k*1.4);applyView();}; $("zout").onclick=()=>{view.k=Math.max(.5,view.k/1.4);applyView();}; $("zfit").onclick=fit;
+new ResizeObserver(()=>applyView()).observe($("mapbox"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>drawMap());
+
+/* ---------- tabs ---------- */
+function setTab(t){ $("main").dataset.tab=t; $("tabList").setAttribute("aria-pressed",t==="list"); $("tabMap").setAttribute("aria-pressed",t==="map"); if(t==="map") applyView(); }
+$("tabList").onclick=()=>setTab("list"); $("tabMap").onclick=()=>setTab("map");
+
+/* ---------- start address ---------- */
+$("homeAddr").value = home.address;
+$("homeAddr").addEventListener("change", async e => {
+  const v=e.target.value.trim(); if(!v||v===home.address) return;
+  $("sync").textContent = "Start address saved. Its map spot updates in tonight's run.";
+  if(db){ try{ await db.doc("settings/home").set({...home, address:v, pending:true}); }catch(err){} }
+});
+
+/* ---------- data ---------- */
+function syncLabel(){
+  if(!meta){ $("sync").textContent = jobs.length? `${jobs.length} open jobs` : "Waiting for job data…"; return; }
+  const d=new Date(meta.lastRun); $("sync").textContent = `${jobs.length} open jobs · updated ${d.toLocaleDateString(undefined,{month:"short",day:"numeric"})} ${d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}`;
+}
+(async () => {
+  try { db = await window.claude?.use?.("db"); } catch(e){ db=null; }
+  if(!db){ $("sync").textContent="Job data is only available when you open this page signed in to Claude."; drawMap(); return; }
+  db.collection("jobs").onSnapshot(s => { jobs = s.docs.map(d=>({id:d.id,...d.data()})); buildFilters(); render(); syncLabel(); if(jobs.some(j=>j.lat!=null)) fit(); },
+    e => { $("sync").textContent="Couldn't load jobs right now. Reload the page to try again."; });
+  db.collection("plan").onSnapshot(s => { plan={}; s.docs.forEach(d=>plan[d.id]=d.data()); buildFilters(); render(); }, ()=>{});
+  db.doc("meta/sync").onSnapshot(d => { meta = d.exists? d.data(): null; syncLabel(); }, ()=>{});
+  db.doc("settings/home").onSnapshot(d => { if(d.exists){ const h=d.data(); if(h.lat!=null) home={address:h.address,lat:h.lat,lng:h.lng}; $("homeAddr").value=h.address||home.address; base=null; render(); } }, ()=>{});
+})();
+render();
+})();
+</script>
