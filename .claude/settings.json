@@ -1,6 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "mcp__Gmail",
+      "mcp__Meridian_Connector_for_QuickBooks",
+      "mcp__Intuit_QuickBooks",
+      "mcp__claude-code-remote",
       "mcp__Gmail__*",
       "mcp__Meridian_Connector_for_QuickBooks__*",
       "mcp__Intuit_QuickBooks__*",
