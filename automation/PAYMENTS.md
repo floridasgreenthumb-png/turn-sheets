@@ -34,7 +34,7 @@ and Gmail.
 3. For each invoice compare paid vs current Balance:
    - equal → apply in full.
    - paid is exactly 2% less (round(balance*0.02, 2) == balance - paid, ±$0.01)
-     AND transaction date − invoice date < 7 days → early-pay discount:
+     AND transaction date − invoice date ≤ 7 days (7 days counts) → early-pay discount:
      get_entity the invoice, sparse update_entity with the full existing
      Line list (keep line Ids) plus a DiscountLineDetail line for the
      difference (PercentBased false, DiscountAccountRef 245, description
@@ -68,7 +68,7 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
    Skip any Coupa payment whose `Coupa <payment_no>` is in that set.
 3. Work oldest first, **max 50 payments per night**. For each one apply the
    same per-invoice rules as above (exact match, or exact 2% discount with
-   payment date − invoice date < 7 days). Extra rules:
+   payment date − invoice date ≤ 7 days; 7 days counts). Extra rules:
    - If every invoice already has Balance 0 → it was entered from a Yardi
      email (different ref no.) → skip, nothing to record.
    - If some are 0 and some open, or anything else doesn't match → leave the
