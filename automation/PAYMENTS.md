@@ -14,10 +14,9 @@ and Gmail.
 
 ## Fixed values
 - Customer: Progress Residential (QuickBooks customer Id `3154`).
-- Deposit to: **MID FLA BIZ ACCT** (account Id `1150040000`).
-  Exception: payments dated before the bank switch go to **liberty bank**
-  (Id `238`). The switch date is not set yet — until it is, only process
-  remittances dated 2026-09-01 or later and list older ones as "needs bank".
+- Deposit to, by payment date (bank switch was **July 2, 2026**):
+  - 2026-07-02 or later → **MID FLA BIZ ACCT** (account Id `1150040000`)
+  - before 2026-07-02 → **liberty bank** (account Id `238`)
 - Discounts: account **Discounts given** (Id `245`).
 
 ## Per remittance
@@ -69,5 +68,5 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
      whole payment alone and list it under "needs you".
    - Payment: TxnDate = Coupa date, PaymentRefNum = `Coupa <payment_no>`,
      PrivateNote "Progress Residential <method> #<payment_no> (from Coupa
-     export). Invoices ...", deposit account per the bank rule above.
+     export). Invoices ...", deposit account by date per the rule above.
 4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
