@@ -14,9 +14,11 @@ takes it off the payout as supplies.
    show, so it is saved to a file — use that path.
 3. `python3 -I automation/hd_receipt.py <saved.json> --save-pdf <scratch>/<order>.pdf > <scratch>/<order>.json`
 4. `python3 -I automation/post_receipt.py <scratch>/<order>.json <scratch>/<order>.pdf`
-   - exit 0 `added` or 3 `already-added` → label the message `portal-receipt-added`.
-   - exit 2 `needs-human` (job name unclear, two jobs match, return, or a same-amount
-     receipt already on the job) → do NOT label; list it in the summary.
+   - exit 0 `added`, or 3 `already-added` / `already-on-job` (the crew already put a
+     receipt for the exact amount on that job by hand) → label the message
+     `portal-receipt-added`.
+   - exit 2 `needs-human` (job name unclear, two jobs match, or a return) → do NOT
+     label; list it in the summary.
 5. End with a short summary: what was added (house, order #, amount) and anything
    that needs a person. Never guess a job.
 
