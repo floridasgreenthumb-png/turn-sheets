@@ -71,9 +71,24 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
      export). Invoices ...", deposit account by date per the rule above.
 4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
 
-## American Homes 4 Rent and Dennis Realty (not automated yet — user will say when)
+## Dennis Realty eCheck payments
+- Source: `from:noreply@propertyware.com subject:"Pending Deposit To Account" -label:qb-payment-recorded`
+  (Dennis Property Management via Propertyware). Body: Payment Date, Total Payment,
+  Payment Method eCheck, Deposit Account XXXXXXXX2334, then an Invoice # / Amount Paid table.
+  Oldest first, max 25 per night. Only eCheck payments (Dennis paid by paper check before
+  the bank switch; those are not handled here).
+- Customer: DENNIS REALTY (QuickBooks customer Id `2818`).
+- Deposit to: **American Express Business Checking** (account Id `265`) — always.
+- Same per-remittance steps as Progress above, except there is **no 2% discount** for
+  Dennis: every invoice must be open and its balance must equal the amount paid exactly.
+  Anything else (short/over pay, invoice missing or already paid, lines not adding up to
+  the total) → touch nothing, leave unlabeled, list under "needs you".
+- Payment: TxnDate = Payment Date, PaymentRefNum = `eCheck <MMDDYYYY>`, PrivateNote
+  "Dennis Realty eCheck (Propertyware) <date>, $<total>. Invoices ...". Before creating,
+  check there's no existing Payment for customer 2818 with the same TxnDate and TotalAmt.
+- Label the email `qb-payment-recorded` (Label_15) once the invoices show Balance 0.
+
+## American Homes 4 Rent (not automated yet — user will say when)
 - AMH ACH payments ("ACH Payment Sent" from cdr@yardi.com, details in PDF attachments)
   are deposited to **American Express Business Checking** (account Id `265`, created
   2026-10-07). Never deposit AMH payments to MID FLA or liberty bank.
-- Dennis Realty (QuickBooks customer `DENNIS REALTY`, Id `2818`) pays by eCheck; those
-  payments also go to **American Express Business Checking** (Id `265`).
