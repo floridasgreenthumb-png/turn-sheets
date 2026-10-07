@@ -8,8 +8,8 @@ takes it off the payout as supplies.
 ## Steps (for the scheduled Claude run)
 
 1. Gmail search:
-   `from:HomeDepot@order.homedepot.com subject:"your Home Depot receipt" newer_than:14d -label:portal-receipt-added`
-   (`portal-receipt-added` is a Gmail label — look up its ID with list_labels; create it if missing.)
+   `from:HomeDepot@order.homedepot.com subject:"your Home Depot receipt" after:2026/09/27 -label:portal-receipt-added`
+   (Receipts from Sept 27, 2026 on only. `portal-receipt-added` is a Gmail label — look up its ID with list_labels; create it if missing.)
 2. For each message: `get_message` with `messageFormat: RAW`. The result is too big to
    show, so it is saved to a file — use that path.
 3. `python3 -I automation/hd_receipt.py <saved.json> --save-pdf <scratch>/<order>.pdf > <scratch>/<order>.json`
