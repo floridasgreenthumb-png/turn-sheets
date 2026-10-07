@@ -78,6 +78,19 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
      export). Invoices ...", deposit account by date per the rule above.
 4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
 
+## Late-discount tab (hidden)
+Any Progress payment where an invoice was paid exactly 2% short but MORE than 7 days
+after the invoice date (QuickBooks TxnDate) goes on a hidden running tab: the
+`late_discounts` collection in the Route Board artifact's database
+(https://claude.ai/artifact/PR2nsTnSqLiWwj6WGwBuoz, not shown on the page).
+One doc per invoice, id `coupa-<payment_no>-<invoice>` (or `yardi-<ref>-<invoice>`):
+payer, payment, paymentDate, invoice, qbInvoiceDate, coupaInvoiceDate (if known),
+daysAfterInvoice, daysAfterCoupaInvoice (if known), invoiceBalance, paid,
+discountTaken, qbStatus ("not entered yet" / "entered"), note, loggedAt.
+Use `set` for new docs only; skip ids that already exist. Don't enter these payments
+in QuickBooks yet (they stay under "needs you") until the user decides how.
+Mention new ones in the summary as "Late discounts: N new ($X)".
+
 ## Dennis Realty eCheck payments
 - Source: `from:noreply@propertyware.com subject:"Pending Deposit To Account" -label:qb-payment-recorded`
   (Dennis Property Management via Propertyware). Body: Payment Date, Total Payment,
