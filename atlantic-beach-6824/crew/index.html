@@ -1757,6 +1757,15 @@ coPhDBopen().then(function(db){ coPhDB = db; return coPhAll(); }).then(function(
    changes wait on this phone (in order) and go up when it's back. */
 var BACKEND_URL = "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", BACKEND_KEY = "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0";
 var SYNC_ME = "", syncQ = [], syncBusy = false, syncSig = "";
+/* Ordering guards. The back end answers in 1-4+ seconds, so answers can land out of
+   order: a "state" read that left before your tick was saved used to come back AFTER
+   the tick's own answer and un-check the task (then the next poll re-checked it).
+   - syncEpoch bumps on every local change and every applied write; a read that left
+     under an older epoch is dropped.
+   - syncLastTs is the newest server write time (state.last[1]) already shown; an
+     answer describing an older server state is dropped, whoever it came from.
+   - syncPolling stops reads from piling up on top of each other. */
+var syncEpoch = 0, syncLastTs = 0, syncPolling = false, syncFirst = true;
 try{ SYNC_ME = localStorage.getItem("turnsheet.by") || ""; }catch(e){}
 try{ syncQ = JSON.parse(localStorage.getItem(KEY + ".q") || "[]") || []; }catch(e){ syncQ = []; }
 function syncSaveQ(){ try{ localStorage.setItem(KEY + ".q", JSON.stringify(syncQ)); }catch(e){} }
@@ -1775,6 +1784,10 @@ function api(body){
 
 /* server state -> this page, with this phone's unsent changes laid on top */
 function syncApply(s){
+  var ts = (s && s.last && s.last[1]) || 0;
+  if(ts < syncLastTs) return;                    // an older picture of the server than we already show
+  syncLastTs = ts;
+  syncLoaded();
   var done = {}, by = {}, cart = {}, got = {}, qty = {}, store = {};
   Object.keys(s.done || {}).forEach(function(id){
     var v = s.done[id] || [];
@@ -1817,6 +1830,7 @@ function syncApply(s){
 }
 
 function syncPush(op){
+  syncEpoch++;                                   // any read already in flight is now stale
   op.turn = JOB.turn; op.by = SYNC_ME; op.at = new Date().toISOString();
   /* a newer change to the same task / material replaces an older unsent one */
   syncQ = syncQ.filter(function(o){
@@ -1834,6 +1848,7 @@ function syncFlush(){
     syncQ = syncQ.filter(function(o){ return o !== op; });
     syncSaveQ();
     syncBusy = false;
+    syncEpoch++;                                 // reads sent before this write landed are stale
     setMode("shared");
     if(syncQ.length) syncFlush(); else syncApply(s);
   }).catch(function(){
@@ -1842,14 +1857,41 @@ function syncFlush(){
   });
 }
 function syncPoll(){
-  if(!BACKEND_URL || document.hidden) return;
+  if(!BACKEND_URL || document.hidden || syncPolling) return;
   if(syncQ.length){ syncFlush(); return; }
+  var epoch = syncEpoch;
+  syncPolling = true;
   api({op:"state", turn:JOB.turn})
-    .then(function(s){ setMode("shared"); syncApply(s); })
-    .catch(function(){ setMode("offline"); });
+    .then(function(s){
+      syncPolling = false;
+      setMode("shared");
+      if(epoch !== syncEpoch) return;            // a tick went up while this read was out — its answer wins
+      syncApply(s);
+    })
+    .catch(function(){ syncPolling = false; setMode("offline"); syncLoaded(); });
+}
+/* First open: say we're fetching, so a phone that has never opened this job doesn't
+   read "all unchecked" as "nothing done" while the back end answers. */
+function syncLoading(){
+  if(!syncFirst || document.getElementById("syncLoading")) return;
+  var b = document.createElement("div");
+  b.id = "syncLoading";
+  b.textContent = "Loading the latest checkmarks…";
+  b.style.cssText = "position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);"
+    + "z-index:60;padding:8px 14px;border-radius:999px;background:#0F766E;color:#fff;"
+    + "font:600 13px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25)";
+  document.body.appendChild(b);
+  setTimeout(syncLoaded, 12000);                 // never leave it up if the back end is slow or down
+}
+function syncLoaded(){
+  if(!syncFirst) return;
+  syncFirst = false;
+  var b = document.getElementById("syncLoading");
+  if(b) b.remove();
 }
 function syncStart(){
   setMode("connecting");
+  syncLoading();
   syncPoll();
   setInterval(syncPoll, 15000);
   window.addEventListener("online", syncPoll);
@@ -2362,7 +2404,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261006-205054";          // stamped in at publish time
+  var CAM_BUILD = "20261007-150153";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
