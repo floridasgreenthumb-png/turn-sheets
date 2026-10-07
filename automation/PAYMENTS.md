@@ -51,3 +51,23 @@ and Gmail.
 ## Summary
 Payments recorded (date, ref, total, # invoices, discounts), and
 remittances that need a person with the reason.
+
+## Backlog (Jan 1, 2026 → now) from the Coupa export
+Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice report"`
+(the user clicks Export on Coupa's Invoices page; the zip arrives by email).
+1. get_message RAW → saved file → `python3 -I automation/coupa_payments.py <file> --from 2026-01-01 > <scratch>/coupa.json`
+   (one entry per Progress payment: payment_no, method, date, total, invoices[doc, amount, invoice_date]).
+2. Already-done check: query QuickBooks payments for customer 3154 with
+   TxnDate >= 2026-01-01 (paginate) and collect their PaymentRefNum values.
+   Skip any Coupa payment whose `Coupa <payment_no>` is in that set.
+3. Work oldest first, **max 50 payments per night**. For each one apply the
+   same per-invoice rules as above (exact match, or exact 2% discount with
+   payment date − invoice date < 7 days). Extra rules:
+   - If every invoice already has Balance 0 → it was entered from a Yardi
+     email (different ref no.) → skip, nothing to record.
+   - If some are 0 and some open, or anything else doesn't match → leave the
+     whole payment alone and list it under "needs you".
+   - Payment: TxnDate = Coupa date, PaymentRefNum = `Coupa <payment_no>`,
+     PrivateNote "Progress Residential <method> #<payment_no> (from Coupa
+     export). Invoices ...", deposit account per the bank rule above.
+4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
