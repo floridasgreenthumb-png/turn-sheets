@@ -59,7 +59,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
 .right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .amt{font:500 .9rem var(--f-mono);font-variant-numeric:tabular-nums}
 .pill{font:600 .7rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.s-new{color:var(--st-new)} .s-open{color:var(--st-open)} .s-approved{color:var(--st-open)} .s-check{color:var(--st-check)}
+.s-new{color:var(--st-new)} .s-open{color:var(--st-open)} .s-approved{color:var(--st-open)} .s-check{color:var(--st-check)} .s-price{color:var(--st-late)} .s-waiting{color:var(--st-check)}
 .late{color:var(--st-late);font-weight:600}
 .done{font:600 .7rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer}
 .done:hover{color:var(--ink);border-color:var(--ink)}
@@ -109,7 +109,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
         <input id="q" type="search" placeholder="Search address, PO, WO, tenant…" aria-label="Search jobs">
       </div>
       <div class="list" id="list">
-        <div class="empty" id="empty"><b>No open jobs loaded yet.</b><br>Every night at 9&nbsp;PM the board fills with the jobs currently open on Progress (Coupa, Dispatch, Relay), American Homes 4 Rent and Maymont. Tick jobs to build a route.</div>
+        <div class="empty" id="empty"><b>No open jobs loaded yet.</b><br>Every hour, 7Every night at 9&nbsp;PM the board fills with the jobs currently open onnbsp;AM–6Every night at 9&nbsp;PM the board fills with the jobs currently open onnbsp;PM, the board updates with the jobs currently open on Progress (Coupa, Dispatch, Relay), American Homes 4 Rent and Maymont. Tick jobs to build a route.</div>
       </div>
       <div class="home">
         <label for="homeAddr">Start from</label>
@@ -144,7 +144,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
 <script>
 (() => {
 const COMPANY = {progress:{name:"Progress",cls:"b-progress",color:"--progress"},amh:{name:"AMH",cls:"b-amh",color:"--amh"},maymont:{name:"Maymont",cls:"b-maymont",color:"--maymont"}};
-const STATUS = {new:"New",open:"Open",approved:"Approved",check:"Check status"};
+const STATUS = {new:"New",price:"Needs price",waiting:"Waiting approval",approved:"Approved – can close",open:"Open",check:"Check status"};
 const DEFAULT_HOME = {address:"8424 Lagerfeld Dr, Land O Lakes, FL 34637", lat:28.279425794589, lng:-82.475376417704};
 let jobs = [], plan = {}, home = DEFAULT_HOME, meta = null, db = null;
 let fCompany = new Set(), fStatus = new Set(), q = "", showDone = false;
@@ -334,7 +334,7 @@ $("tabList").onclick=()=>setTab("list"); $("tabMap").onclick=()=>setTab("map");
 $("homeAddr").value = home.address;
 $("homeAddr").addEventListener("change", async e => {
   const v=e.target.value.trim(); if(!v||v===home.address) return;
-  $("sync").textContent = "Start address saved. Its map spot updates in tonight's run.";
+  $("sync").textContent = "Start address saved. Its map spot updates in the next hourly run.";
   if(db){ try{ await db.doc("settings/home").set({...home, address:v, pending:true}); }catch(err){} }
 });
 
