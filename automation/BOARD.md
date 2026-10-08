@@ -8,9 +8,17 @@ Job fields: company (progress|amh|maymont), portal, ref, street, city, state, zi
 geo (exact|approx|none), title, items, amount, needBy, received, status
 (new|open|approved|check), statusNote, tenant, phone, project, workOrder, updatedAt.
 
-Runs hourly 7 AM–7 PM Mon–Sat, and again in the 9 PM nightly run.
+Runs hourly 7 AM–7 PM Mon–Sat (Eastern) in the Route Board session.
 Work only on emails newer than `meta/sync.lastRun` (search with `newer_than:2h`
 plus the date check, so nothing is missed between runs).
+
+## Source of truth
+AMH, Relay and Maymont close jobs inside their own portals and send no email when a job
+closes (the only later email is an invoice or payment). So email can add jobs but can't say
+a job is done: **the portal is the source of truth.** If a portal shows a job open, it is
+open. Dispatch jobs stay open until the user closes them in Dispatch. That means the daily
+"Portal status update" email (below) is what clears finished AMH/Relay/Maymont/Dispatch jobs.
+Coupa jobs clear on their invoice emails as before.
 
 ## What adds, changes or removes a job
 | Email | Effect |
@@ -26,7 +34,7 @@ plus the date check, so nothing is missed between runs).
 | AMH ACH payment (cdr@yardi.com) listing the WO, or amount-matching approved WOs exactly | delete |
 | Maymont `Work Order for <address>, <B#>, ... Status - <status>` | add/update `maymont-<B#>` (address from subject, amount from "approved amount for this bid") |
 | Maymont "Vendor Survey" for an address | delete that address's Maymont job (done) |
-| Newest **"Portal status update"** email (from Claude in Chrome, to floridasgreenthumb@gmail.com) | it lists every open job per portal. Jobs it marks pending validation / complete / closed / canceled → delete. Jobs it lists as open → status open + its status text. Jobs it lists that aren't on the board → add. |
+| Newest **"Portal status update"** email (from Claude in Chrome, to floridasgreenthumb@gmail.com) | one section per portal (`PORTAL:` name, `LIST: complete / partial / COULD NOT READ`, then one line per job: number \| address \| status \| extras). Only use sections marked `LIST: complete`; skip the others and say which were skipped. In a complete section: jobs marked pending validation / complete / closed / canceled → delete; jobs listed open → status open + the portal's status text in statusNote; listed jobs not on the board → add; board jobs from that portal **not in the list** → delete (the portal no longer has them). Safety: if one email would delete more than half of a portal's board jobs, set them to status check "Not in portal list" instead and mention it in the summary. Relay lines match board Progress jobs by project number (`project` field). |
 | Relay "Project Team Notification" | nothing on its own; the job appears when its Coupa PO arrives (match on project number) |
 
 Never delete a job the user ticked for a route today (`plan/<id>.route == true`); set
@@ -41,3 +49,9 @@ statusNote instead. Ignore the placeholder tenant "Progress Residential Resident
    update changed ones, delete removed ones; then update `meta/sync` lastRun + counts.
 5. If `settings/home` has `pending: true`, geocode its address and update lat/lng.
 6. Summary line: "Board: +N new, M updated, K removed, T open".
+
+## Later (planned, not active): closing Dispatch jobs
+The user closes Dispatch jobs by hand today and wants Claude to do it eventually. Plan:
+the board marks a Dispatch job "ready to close" (user ticks it done on the board, or its
+Coupa invoice is in); Claude in Chrome closes only jobs on that list, after the user okays
+the list, and reports each one in the next Portal status update. Not turned on yet.
