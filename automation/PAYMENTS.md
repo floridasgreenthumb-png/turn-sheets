@@ -34,7 +34,8 @@ and Gmail.
 3. For each invoice compare paid vs current Balance:
    - equal → apply in full.
    - paid is exactly 2% less (round(balance*0.02, 2) == balance - paid, ±$0.01)
-     AND transaction date − invoice date ≤ 7 days (7 days counts) → early-pay discount:
+     → discount (≤ 7 days after the invoice date is a normal early-pay discount; more than
+     7 days is a late discount: still accept it, and log it — see "Late-discount tab"):
      get_entity the invoice, sparse update_entity with the full existing
      Line list (keep line Ids) plus a DiscountLineDetail line for the
      difference (PercentBased false, DiscountAccountRef 245, description
@@ -67,8 +68,8 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
    TxnDate >= 2026-01-01 (paginate) and collect their PaymentRefNum values.
    Skip any Coupa payment whose `Coupa <payment_no>` is in that set.
 3. Work oldest first, **max 50 payments per night**. For each one apply the
-   same per-invoice rules as above (exact match, or exact 2% discount with
-   payment date − invoice date ≤ 7 days; 7 days counts). Extra rules:
+   same per-invoice rules as above (exact match, or exact 2% discount — on time
+   is ≤ 7 days after the invoice date; later ones are accepted and logged per "Late-discount tab"). Extra rules:
    - If every invoice already has Balance 0 → it was entered from a Yardi
      email (different ref no.) → skip, nothing to record.
    - If some are 0 and some open, or anything else doesn't match → leave the
@@ -87,8 +88,11 @@ One doc per invoice, id `coupa-<payment_no>-<invoice>` (or `yardi-<ref>-<invoice
 payer, payment, paymentDate, invoice, qbInvoiceDate, coupaInvoiceDate (if known),
 daysAfterInvoice, daysAfterCoupaInvoice (if known), invoiceBalance, paid,
 discountTaken, qbStatus ("not entered yet" / "entered"), note, loggedAt.
-Use `set` for new docs only; skip ids that already exist. Don't enter these payments
-in QuickBooks yet (they stay under "needs you") until the user decides how.
+Use `set` for new docs only; skip ids that already exist. The user ACCEPTS these
+discounts: add the 2% discount line (description "2% discount taken late (accepted) -
+Progress <ref>"), record the payment as usual (add "LATE DISCOUNT accepted" to the
+PrivateNote), and set the doc's qbStatus to "entered <date>, discount accepted
+(QBO payment <Id>)". Anything that isn't exactly 2% short still goes under "needs you".
 Mention new ones in the summary as "Late discounts: N new ($X)".
 
 ## Dennis Realty eCheck payments
