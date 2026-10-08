@@ -23,7 +23,9 @@ closes (the only later email is an invoice or payment). So email can add jobs bu
 a job is done: **the portal is the source of truth.** If a portal shows a job open, it is
 open. Dispatch jobs stay open until the user closes them in Dispatch. Claude in Chrome checks the portals
 hourly and emails only what changed ("Portal changes", below); that is what clears finished
-AMH/Relay/Maymont/Dispatch jobs.
+AMH/Relay/Dispatch jobs.
+Maymont is not in the hourly check (little work): add or remove a Maymont job when the user
+says so in this session; the Maymont emails below still add/remove them too.
 Coupa jobs clear on their invoice emails as before.
 
 ## What adds, changes or removes a job
@@ -40,7 +42,7 @@ Coupa jobs clear on their invoice emails as before.
 | AMH ACH payment (cdr@yardi.com) listing the WO, or amount-matching approved WOs exactly | delete |
 | Maymont `Work Order for <address>, <B#>, ... Status - <status>` | add/update `maymont-<B#>` (address from subject, amount from "approved amount for this bid") |
 | Maymont "Vendor Survey" for an address | delete that address's Maymont job (done) |
-| **"Portal changes"** emails (from Claude in Chrome, to floridasgreenthumb@gmail.com; at most one per hour, only when something changed) | process every one newer than lastRun, oldest first. Lines: `NEW \| <portal> \| <job #> \| <address> \| <stage> \| <extras>`, `CHANGED \| <portal> \| <job #> \| <stage>`, `GONE \| <portal> \| <job #> \| <address>`. NEW → add (or update if already there). CHANGED → update status from the stage. GONE (no longer in the portal = the user closed it) → delete. Stage → status: "needs price" → price; "waiting approval" → waiting; "approved" → approved (AMH/Dispatch: can close now); anything else → open. Put the portal's own wording in statusNote. Match AMH by WO, Dispatch by J-number, Maymont by B-number, Relay by project number (`project` field of the Progress job). A line matching nothing → skip and mention it. Jobs not mentioned are left alone. `PROBLEM` lines → mention in the summary. |
+| **"Portal changes"** emails (from Claude in Chrome, to floridasgreenthumb@gmail.com; at most one per hour, only when something changed) | process every one newer than lastRun, oldest first. Lines: `NEW \| <portal> \| <job #> \| <address> \| <stage> \| <extras>`, `CHANGED \| <portal> \| <job #> \| <stage>`, `GONE \| <portal> \| <job #> \| <address>`. NEW → add (or update if already there). CHANGED → update status from the stage. GONE (no longer in the portal = the user closed it) → delete. Stage → status: "needs price" → price; "waiting approval" → waiting; "approved" → approved (AMH/Dispatch: can close now); anything else → open. Put the portal's own wording in statusNote. Match AMH by WO, Dispatch by J-number, Relay by project number (`project` field of the Progress job). A line matching nothing → skip and mention it. Jobs not mentioned are left alone. `PROBLEM` lines → mention in the summary. |
 | Relay "Project Team Notification" | nothing on its own; the job appears when its Coupa PO arrives (match on project number) |
 
 Never delete a job the user ticked for a route today (`plan/<id>.route == true`); set
