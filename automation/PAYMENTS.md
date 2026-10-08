@@ -79,6 +79,14 @@ Source: the newest Gmail message `from:coupahost.com subject:"Your Coupa invoice
      export). Invoices ...", deposit account by date per the rule above.
 4. Summary line: "Backlog: X recorded tonight, Y left, Z need you".
 
+## Coupa Status column (Voided / Disputed)
+The export has a Status column (Approved, Disputed, Draft, Voided, Pending Approval).
+Voided and Disputed rows are the user's own invoice mistakes. They never count as paid:
+`coupa_payments.py` only reads rows with the Paid flag and a payment line, and so far no
+Voided/Disputed row has one. Never record a payment from such a row. When reporting what
+Progress still owes, list QuickBooks invoices whose Coupa row is Voided/Disputed
+separately ("your Coupa mistakes, not owed as billed") instead of counting them as unpaid.
+
 ## Late-discount tab (hidden)
 Any Progress payment where an invoice was paid exactly 2% short but MORE than 7 days
 after the invoice date (QuickBooks TxnDate) goes on a hidden running tab: the
