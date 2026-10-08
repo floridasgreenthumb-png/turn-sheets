@@ -8,7 +8,7 @@ Job fields: company (progress|amh|maymont), portal, ref, street, city, state, zi
 geo (exact|approx|none), title, items, amount, needBy, received, status
 (new|open|approved|check), statusNote, tenant, phone, project, workOrder, updatedAt.
 
-Runs hourly 7 AM–7 PM Mon–Sat (Eastern) in the Route Board session.
+Runs hourly 7 AM–6 PM Mon–Sat (Eastern) in the Route Board session.
 Work only on emails newer than `meta/sync.lastRun` (search with `newer_than:2h`
 plus the date check, so nothing is missed between runs).
 
@@ -16,8 +16,9 @@ plus the date check, so nothing is missed between runs).
 AMH, Relay and Maymont close jobs inside their own portals and send no email when a job
 closes (the only later email is an invoice or payment). So email can add jobs but can't say
 a job is done: **the portal is the source of truth.** If a portal shows a job open, it is
-open. Dispatch jobs stay open until the user closes them in Dispatch. That means the daily
-"Portal status update" email (below) is what clears finished AMH/Relay/Maymont/Dispatch jobs.
+open. Dispatch jobs stay open until the user closes them in Dispatch. Claude in Chrome checks the portals
+hourly and emails only what changed ("Portal changes", below); that is what clears finished
+AMH/Relay/Maymont/Dispatch jobs.
 Coupa jobs clear on their invoice emails as before.
 
 ## What adds, changes or removes a job
@@ -34,7 +35,7 @@ Coupa jobs clear on their invoice emails as before.
 | AMH ACH payment (cdr@yardi.com) listing the WO, or amount-matching approved WOs exactly | delete |
 | Maymont `Work Order for <address>, <B#>, ... Status - <status>` | add/update `maymont-<B#>` (address from subject, amount from "approved amount for this bid") |
 | Maymont "Vendor Survey" for an address | delete that address's Maymont job (done) |
-| Newest **"Portal status update"** email (from Claude in Chrome, to floridasgreenthumb@gmail.com) | one section per portal (`PORTAL:` name, `LIST: complete / partial / COULD NOT READ`, then one line per job: number \| address \| status \| extras). Only use sections marked `LIST: complete`; skip the others and say which were skipped. In a complete section: jobs marked pending validation / complete / closed / canceled → delete; jobs listed open → status open + the portal's status text in statusNote; listed jobs not on the board → add; board jobs from that portal **not in the list** → delete (the portal no longer has them). Safety: if one email would delete more than half of a portal's board jobs, set them to status check "Not in portal list" instead and mention it in the summary. Relay lines match board Progress jobs by project number (`project` field). |
+| **"Portal changes"** emails (from Claude in Chrome, to floridasgreenthumb@gmail.com; one per hour at most, only when something changed) | process every one newer than lastRun, oldest first. Lines look like `NEW \| <portal> \| <job #> \| <address> \| <status> \| <extras>` or `CLOSED \| <portal> \| <job #> \| <address> \| <status>`. NEW → add the job (or update it if already on the board), status open + portal status in statusNote. CLOSED (completed / pending validation / closed / canceled) → delete. Match AMH by WO, Dispatch by J-number, Maymont by B-number, Relay by project number (`project` field of the Progress job). A line that matches nothing → skip it and mention it in the summary. Not a full list: jobs not mentioned are left alone. |
 | Relay "Project Team Notification" | nothing on its own; the job appears when its Coupa PO arrives (match on project number) |
 
 Never delete a job the user ticked for a route today (`plan/<id>.route == true`); set
