@@ -24,8 +24,12 @@ a job is done: **the portal is the source of truth.** If a portal shows a job op
 open. Dispatch jobs stay open until the user closes them in Dispatch. Claude in Chrome checks the portals
 hourly and emails only what changed ("Portal changes", below); that is what clears finished
 AMH/Relay/Dispatch jobs.
-Maymont is not in the hourly check (little work): add or remove a Maymont job when the user
-says so in this session; the Maymont emails below still add/remove them too.
+Maymont is not in the Chrome check (little work). Each hourly run adds new Maymont jobs from
+their work-order emails (sender dispatch@maymonthomes.com). Never delete a Maymont job: the
+user deletes them by hand.
+AMH jobs are added by the AMH watcher, not by this refresh. Do not add AMH jobs here (not from
+AMH emails, not from Portal changes `NEW | AMH` lines). Updating or removing AMH jobs already on
+the board still works as below.
 Coupa jobs clear on their invoice emails as before.
 
 ## What adds, changes or removes a job
@@ -36,13 +40,13 @@ Coupa jobs clear on their invoice emails as before.
 | Dispatch "New Offer" | add `dispatch-<J#>` status new (address, tenant, phone, job type, description, due date) |
 | Dispatch "Estimate was just Approved" | that tenant's newest open job → status approved |
 | Dispatch "has been canceled" / completed / closed | delete that job |
-| AMH "New Work Order is Available for Acceptance" | add `amh-<WO>` status new, city+zip only (approx pin) |
+| AMH "New Work Order is Available for Acceptance" | nothing (the AMH watcher adds AMH jobs) |
 | AMH "Bids approved for order #<WO>" | street, amount; status check "Bid approved – done? (pending validation)" |
 | AMH note / Services Ordered / staff email | update street, statusNote (keep it short) |
 | AMH ACH payment (cdr@yardi.com) listing the WO, or amount-matching approved WOs exactly | delete |
-| Maymont `Work Order for <address>, <B#>, ... Status - <status>` | add/update `maymont-<B#>` (address from subject, amount from "approved amount for this bid") |
-| Maymont "Vendor Survey" for an address | delete that address's Maymont job (done) |
-| **"Portal changes"** emails (from Claude in Chrome, to floridasgreenthumb@gmail.com; at most one per hour, only when something changed) | process every one newer than lastRun, oldest first. Lines: `NEW \| <portal> \| <job #> \| <address> \| <stage> \| <extras>`, `CHANGED \| <portal> \| <job #> \| <stage>`, `GONE \| <portal> \| <job #> \| <address>`. NEW → add (or update if already there). CHANGED → update status from the stage. GONE (no longer in the portal = the user closed it) → delete. Stage → status: "needs price" → price; "waiting approval" → waiting; "approved" → approved (AMH/Dispatch: can close now); anything else → open. Put the portal's own wording in statusNote. Match AMH by WO, Dispatch by J-number, Relay by project number (`project` field of the Progress job). A line matching nothing → skip and mention it. Jobs not mentioned are left alone. `PROBLEM` lines → mention in the summary. |
+| Maymont `Work Order for <address>, <B#>, ... Status - <status>` (from dispatch@maymonthomes.com) | add `maymont-<B#>`, or update it if already there (address from subject, amount from "approved amount for this bid", status note = the Status in the subject) |
+| Maymont "Vendor Survey" for an address | nothing (the user deletes Maymont jobs by hand) |
+| **"Portal changes"** emails (from Claude in Chrome, to floridasgreenthumb@gmail.com; at most one per hour, only when something changed) | process every one newer than lastRun, oldest first. Lines: `NEW \| <portal> \| <job #> \| <address> \| <stage> \| <extras>`, `CHANGED \| <portal> \| <job #> \| <stage>`, `GONE \| <portal> \| <job #> \| <address>`. NEW → add (or update if already there); skip `NEW | AMH` lines (the watcher adds AMH jobs). CHANGED → update status from the stage. GONE (no longer in the portal = the user closed it) → delete. Stage → status: "needs price" → price; "waiting approval" → waiting; "approved" → approved (AMH/Dispatch: can close now); anything else → open. Put the portal's own wording in statusNote. Match AMH by WO, Dispatch by J-number, Relay by project number (`project` field of the Progress job). A line matching nothing → skip and mention it. Jobs not mentioned are left alone. `PROBLEM` lines → mention in the summary. |
 | Relay "Project Team Notification" | nothing on its own; the job appears when its Coupa PO arrives (match on project number) |
 
 Never delete a job the user ticked for a route today (`plan/<id>.route == true`); set
@@ -50,7 +54,9 @@ statusNote instead. Ignore the placeholder tenant "Progress Residential Resident
 
 ## Steps
 1. Read `meta/sync` and `jobs` (ArtifactData list, cursor through all).
-2. Search Gmail for the emails above since lastRun; build adds/updates/deletes.
+2. Search Gmail for the emails above since lastRun; build adds/updates/deletes. Query:
+   `newer_than:2h (from:coupa OR "Portal changes" OR from:dispatch.me OR from:amh.com OR
+   from:cdr@yardi.com OR from:maymonthomes.com)`.
 3. Geocode new/changed addresses: write them to a JSON list and run
    `python3 -I automation/geocode.py <file> <scratch>/geocache.json`.
 4. ArtifactData `batch` (≤50 per call, pin `if_version` on existing docs): set new jobs,
