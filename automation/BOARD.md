@@ -35,7 +35,7 @@ Coupa jobs clear on their invoice emails as before.
 ## What adds, changes or removes a job
 | Email | Effect |
 |---|---|
-| Coupa `Progress Residential Purchase Order #<PO>` (not "Reminder", not "Copy") | add `coupa-<PO>`: read PLAIN_TEXT; ship-to street/city/zip, Project Number, Work Order, earliest Need By, line items, total; status open "PO issued, not invoiced yet". If its Work Order is a Dispatch J-number already on the board, delete that `dispatch-` job and set portal "Dispatch + Coupa". |
+| Coupa `Progress Residential Purchase Order #<PO>` (not "Reminder", not "Copy") | add `coupa-<PO>`: read PLAIN_TEXT; ship-to street/city/zip, Project Number, Work Order, earliest Need By, line items, total; status open "PO issued, not invoiced yet". Only add it if the job is still open and not already on the board: if its Work Order is a Dispatch J-number already on the board, update that `dispatch-` job instead (keep its id; portal "Dispatch + Coupa", amount, PO number in statusNote); if it is a Dispatch J-number not on the board (already closed), skip it; if it is a Relay job already on the board (same address/amount), skip it. |
 | Coupa email naming an invoice for a PO / a newer "Your Coupa invoice report" export (`automation/coupa_payments.py` logic: PO has a non-void invoice) | delete `coupa-<PO>` |
 | Dispatch "New Offer" | add `dispatch-<J#>` status new (address, tenant, phone, job type, description, due date) |
 | Dispatch "Estimate was just Approved" | that tenant's newest open job → status approved |
@@ -55,7 +55,7 @@ statusNote instead. Ignore the placeholder tenant "Progress Residential Resident
 ## Steps
 1. Read `meta/sync` and `jobs` (ArtifactData list, cursor through all).
 2. Search Gmail for the emails above since lastRun; build adds/updates/deletes. Query:
-   `newer_than:2h (from:coupa OR "Portal changes" OR from:dispatch.me OR from:amh.com OR
+   `newer_than:2h (from:coupahost.com OR "Portal changes" OR from:dispatch.me OR from:amh.com OR
    from:cdr@yardi.com OR from:maymonthomes.com)`.
 3. Geocode new/changed addresses: write them to a JSON list and run
    `python3 -I automation/geocode.py <file> <scratch>/geocache.json`.
