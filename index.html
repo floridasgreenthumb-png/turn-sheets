@@ -183,6 +183,25 @@ main{padding:18px 0 40px}
 .py-name{font-weight:600;color:var(--ink);line-height:1.25}
 .py-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .py-amt{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);white-space:nowrap}
+.py-grand{display:block}
+.py-gl{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.py-gsub{font-size:13.5px;color:var(--ink-2);margin:4px 0}
+.py-gprofit{border-top:1px solid color-mix(in srgb,var(--brand) 30%,transparent);padding-top:6px;margin-top:2px}
+.py-wprofit{font-size:12.5px;color:var(--ink-2);margin:-2px 0 8px;text-align:right}
+.py-wprofit b{font-family:"IBM Plex Mono",monospace;color:var(--brand)}
+.py-row{cursor:pointer}
+.py-row.open{border-color:var(--brand);border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0}
+.py-hl b{color:var(--brand);font-family:"IBM Plex Mono",monospace}
+.py-tap{color:var(--brand);font-weight:600}
+.py-help{border:1px solid var(--brand);border-top:0;border-radius:0 0 10px 10px;padding:10px 12px;margin-bottom:8px;background:var(--surface)}
+.py-hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line-2);font-size:14px}
+.py-hnote{color:var(--muted);font-size:12px}
+.py-hamt{font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+.py-hdel{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:0 7px;font-size:15px;line-height:1.4;margin-left:6px}
+.py-hnone{font-size:13px;color:var(--muted);padding:2px 0 6px}
+.py-hadd{display:grid;grid-template-columns:1fr 92px auto;gap:6px;margin-top:8px}
+.py-hadd .mm-in{min-height:40px;padding:8px 10px;font-size:14px;min-width:0}
+.py-hadd .mm-btn{min-height:40px;padding:8px 14px}
 /* completed scopes: collapsible folder at the bottom */
 .donesec{margin-top:14px}
 .donehdr{display:flex;align-items:center;justify-content:space-between;width:100%;
@@ -640,7 +659,7 @@ function asgClick(e){
 /* --- Manager payouts: every completed job, its completion date, and the MANAGER's share only.
    Same math as the job page's Receipts & payout panel: (portal total - receipts) x pct.
    The owner's split is deliberately never shown here. --- */
-var pyEl = null;
+var pyEl = null, PY = null;   /* PY = {rows, open, helpers, failed, expanded:{turn:true}} */
 function payIso(s){
   if(s.completedDate) return s.completedDate;
   var p = PROG[s.turn];
@@ -655,50 +674,137 @@ function payWeek(iso){          // Sunday-Saturday week, built from plain number
   var f = function(x){ return MON[x.getUTCMonth()] + " " + x.getUTCDate(); };
   return {key:a.toISOString().slice(0,10), label:"Week of " + f(a) + " – " + f(b) + ", " + b.getUTCFullYear()};
 }
-function closePayouts(){ if(pyEl){ pyEl.remove(); pyEl = null; if(!mcEl && !asgEl) document.body.style.overflow = ""; } }
+function r2(n){ return Math.round(n * 100) / 100; }
+function helperSum(turn){
+  return r2(((PY && PY.helpers[turn]) || []).reduce(function(t, x){ return t + (+x.amount || 0); }, 0));
+}
+function closePayouts(){ if(pyEl){ pyEl.remove(); pyEl = null; PY = null; if(!mcEl && !asgEl) document.body.style.overflow = ""; } }
 function openPayouts(){
   if(pyEl || ROLE !== "manager") return;            // managers only — crew and viewer logins never get this
   pyEl = openModal('<div class="mm-top"><h3>Manager payouts</h3><button class="mm-x" data-py="close" aria-label="Close">&times;</button></div>'
-    + '<p class="mm-p">Completed jobs, by the week they were finished. Each amount is the job&rsquo;s portal total minus its receipts, times the manager&rsquo;s share.</p>'
+    + '<p class="mm-p">Payout = job total on the portal minus receipts, times the manager&rsquo;s share. '
+    + 'Tap a job to log what you paid your helpers &mdash; that comes out of the payout to give the manager&rsquo;s net profit.</p>'
     + '<div id="pyBody"><div class="mm-load">Adding up receipts&hellip;</div></div>');
-  pyEl.addEventListener("click", function(e){ if(e.target === pyEl || e.target.closest('[data-py="close"]')) closePayouts(); });
-  var jobs = SCOPES.filter(function(s){ return s.completed; });
-  Promise.all(jobs.map(function(s){
-    return hubApi("receipts", {turn:s.turn})
-      .then(function(r){ return (r && r.ok) ? (+r.total || 0) : null; })
-      .catch(function(){ return null; });
-  })).then(function(sup){
-    paintPayouts(jobs.map(function(s, i){
-      var pct = (typeof s.pct === "number") ? s.pct : 77.5;
-      var net = Math.round(((s.total || 0) - (sup[i] || 0)) * 100) / 100;
-      return {s:s, iso:payIso(s), supplies:sup[i], mgr:Math.round(net * pct) / 100};
-    }));
+  pyEl.addEventListener("click", pyClick);
+  var done = SCOPES.filter(function(s){ return s.completed; });
+  var open = SCOPES.filter(function(s){ return !s.completed && s.hasCrew; });
+  Promise.all([
+    Promise.all(done.map(function(s){
+      return hubApi("receipts", {turn:s.turn})
+        .then(function(r){ return (r && r.ok) ? (+r.total || 0) : null; })
+        .catch(function(){ return null; });
+    })),
+    hubApi("helpers").then(function(r){ return (r && r.ok) ? (r.map || {}) : null; }).catch(function(){ return null; })
+  ]).then(function(res){
+    var sup = res[0];
+    PY = {
+      helpers: res[1] || {}, helpersFailed: res[1] === null, expanded: {},
+      open: open,
+      rows: done.map(function(s, i){
+        var pct = (typeof s.pct === "number") ? s.pct : 77.5;
+        var net = r2((s.total || 0) - (sup[i] || 0));
+        return {s:s, iso:payIso(s), supplies:sup[i], mgr:Math.round(net * pct) / 100};
+      })
+    };
+    paintPayouts();
   });
 }
-function paintPayouts(rows){
-  var box = document.getElementById("pyBody"); if(!box) return;
-  if(!rows.length){ box.innerHTML = '<div class="mm-empty">No completed jobs yet.</div>'; return; }
-  rows.sort(function(a, b){ return (b.iso || "").localeCompare(a.iso || ""); });   // newest first, undated last
-  var groups = [], byKey = {}, grand = 0, failed = 0;
+function helperBlock(turn){
+  var list = PY.helpers[turn] || [];
+  var h = '<div class="py-help" data-pyturn="' + esc(turn) + '">';
+  if(list.length){
+    list.forEach(function(x){
+      h += '<div class="py-hrow"><span>' + esc(x.name || "Helper") + (x.note ? ' <span class="py-hnote">' + esc(x.note) + '</span>' : '') + '</span>'
+        + '<span class="py-hamt">' + money(+x.amount || 0)
+        + ' <button class="py-hdel" type="button" data-py="del" data-turn="' + esc(turn) + '" data-id="' + esc(x.id) + '" aria-label="Remove">&times;</button></span></div>';
+    });
+  } else {
+    h += '<div class="py-hnone">No helper pay logged for this job yet.</div>';
+  }
+  h += '<div class="py-hadd"><input class="mm-in" type="text" placeholder="Helper name" data-f="name" autocomplete="off">'
+    + '<input class="mm-in" type="number" inputmode="decimal" step="0.01" min="0" placeholder="$ paid" data-f="amount">'
+    + '<button class="mm-btn" type="button" data-py="add" data-turn="' + esc(turn) + '">Add</button></div>'
+    + '<div class="mm-err" data-err="' + esc(turn) + '"></div></div>';
+  return h;
+}
+function paintPayouts(){
+  var box = document.getElementById("pyBody"); if(!box || !PY) return;
+  var rows = PY.rows.slice().sort(function(a, b){ return (b.iso || "").localeCompare(a.iso || ""); });   // newest first, undated last
+  var groups = [], byKey = {}, gPay = 0, gHelp = 0, failed = 0;
   rows.forEach(function(r){
     var w = payWeek(r.iso) || {key:"~", label:"No completion date recorded"};
-    if(!byKey[w.key]){ byKey[w.key] = {label:w.label, rows:[], sum:0}; groups.push(byKey[w.key]); }
-    byKey[w.key].rows.push(r); byKey[w.key].sum += r.mgr; grand += r.mgr;
+    if(!byKey[w.key]){ byKey[w.key] = {label:w.label, rows:[], pay:0, help:0}; groups.push(byKey[w.key]); }
+    var hs = helperSum(r.s.turn);
+    byKey[w.key].rows.push(r); byKey[w.key].pay += r.mgr; byKey[w.key].help += hs;
+    gPay += r.mgr; gHelp += hs;
     if(r.supplies === null) failed++;
   });
-  var html = '<div class="py-grand"><span>All completed jobs</span><b>' + money(Math.round(grand*100)/100) + '</b></div>';
+  var html = '<div class="py-grand"><div class="py-gl"><span>Manager payouts</span><b>' + money(r2(gPay)) + '</b></div>'
+    + '<div class="py-gl py-gsub"><span>Paid to helpers</span><span>&minus;' + money(r2(gHelp)) + '</span></div>'
+    + '<div class="py-gl py-gprofit"><span>Manager&rsquo;s net profit</span><b>' + money(r2(gPay - gHelp)) + '</b></div></div>';
   if(failed) html += '<div class="mm-err">Receipts didn&rsquo;t load for ' + failed + ' job' + (failed>1?'s':'') + ' (shown without supplies taken out). Close and reopen to retry.</div>';
+  if(PY.helpersFailed) html += '<div class="mm-err">Helper pay didn&rsquo;t load. Close and reopen to retry before adding any.</div>';
   groups.forEach(function(g){
-    html += '<div class="py-week"><span>' + esc(g.label) + '</span><b>' + money(Math.round(g.sum*100)/100) + '</b></div>';
+    html += '<div class="py-week"><span>' + esc(g.label) + '</span><b>' + money(r2(g.pay)) + '</b></div>'
+      + (g.help ? '<div class="py-wprofit">Helpers &minus;' + money(r2(g.help)) + ' &middot; net profit <b>' + money(r2(g.pay - g.help)) + '</b></div>' : '');
     g.rows.forEach(function(r){
-      var s = r.s;
-      html += '<div class="py-row"><div><div class="py-name">' + esc(s.h1) + (s.co ? ' &middot; CO #' + s.co : '') + '</div>'
+      var s = r.s, hs = helperSum(s.turn), open = !!PY.expanded[s.turn];
+      html += '<div class="py-row' + (open ? ' open' : '') + '" data-py="toggle" data-turn="' + esc(s.turn) + '">'
+        + '<div><div class="py-name">' + esc(s.h1) + (s.co ? ' &middot; CO #' + s.co : '') + '</div>'
         + '<div class="py-sub">' + (r.iso ? 'Completed ' + esc(doneDate(r.iso)) : 'Completion date not recorded')
-        + (r.supplies ? ' &middot; after ' + money(r.supplies) + ' supplies' : '') + '</div></div>'
-        + '<div class="py-amt">' + money(r.mgr) + '</div></div>';
+        + (r.supplies ? ' &middot; after ' + money(r.supplies) + ' supplies' : '') + '</div>'
+        + (hs ? '<div class="py-sub py-hl">Helpers &minus;' + money(hs) + ' &middot; net profit <b>' + money(r2(r.mgr - hs)) + '</b></div>'
+              : '<div class="py-sub py-tap">Tap to add helper pay</div>')
+        + '</div><div class="py-amt">' + money(r.mgr) + '</div></div>'
+        + (open ? helperBlock(s.turn) : '');
     });
   });
+  if(PY.open.length){
+    html += '<div class="py-week"><span>In progress &mdash; log helper pay as you go</span></div>';
+    PY.open.forEach(function(s){
+      var hs = helperSum(s.turn), open = !!PY.expanded[s.turn];
+      html += '<div class="py-row' + (open ? ' open' : '') + '" data-py="toggle" data-turn="' + esc(s.turn) + '">'
+        + '<div><div class="py-name">' + esc(s.h1) + (s.co ? ' &middot; CO #' + s.co : '') + '</div>'
+        + '<div class="py-sub">Not completed yet &mdash; payout shows when it&rsquo;s done</div></div>'
+        + '<div class="py-amt">' + (hs ? '&minus;' + money(hs) : '') + '</div></div>'
+        + (open ? helperBlock(s.turn) : '');
+    });
+  }
   box.innerHTML = html;
+}
+function pyClick(e){
+  var b = e.target.closest("[data-py]");
+  if(e.target === pyEl){ closePayouts(); return; }
+  if(!b || !PY) { if(b && b.dataset.py === "close") closePayouts(); return; }
+  var act = b.dataset.py, turn = b.dataset.turn;
+  if(act === "close"){ closePayouts(); return; }
+  if(act === "toggle"){
+    if(e.target.closest(".py-help")) return;
+    PY.expanded[turn] = !PY.expanded[turn]; paintPayouts();
+    if(PY.expanded[turn]){ var f = pyEl.querySelector('.py-help[data-pyturn="' + turn + '"] [data-f="name"]'); if(f) f.focus(); }
+    return;
+  }
+  if(act === "add"){
+    var wrap = b.closest(".py-help"), err = wrap.querySelector("[data-err]");
+    var name = wrap.querySelector('[data-f="name"]').value.trim();
+    var amt = parseFloat(wrap.querySelector('[data-f="amount"]').value);
+    if(!(amt > 0)){ err.textContent = "Enter what you paid (more than $0)."; return; }
+    err.textContent = "Saving…"; b.disabled = true;
+    hubApi("helperadd", {turn:turn, name:name || "Helper", amount:amt, by:"manager",
+                         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)})
+      .then(function(r){
+        if(r && r.ok){ PY.helpers = r.map || {}; paintPayouts(); }
+        else { b.disabled = false; err.textContent = (r && r.error) || "Couldn't save."; }
+      }).catch(function(){ b.disabled = false; err.textContent = "Couldn't reach the server — try again."; });
+    return;
+  }
+  if(act === "del"){
+    if(!confirm("Remove this helper payment?")) return;
+    hubApi("helperdel", {turn:turn, id:b.dataset.id}).then(function(r){
+      if(r && r.ok){ PY.helpers = r.map || {}; paintPayouts(); }
+    }).catch(function(){});
+    return;
+  }
 }
 (function(){ var b = document.getElementById("payoutsBtn"); if(b) b.addEventListener("click", openPayouts); })();
 document.getElementById("list").addEventListener("click", function(e){
