@@ -1039,7 +1039,9 @@ function taskHTML(t, ctxRoom){
     });
   }
   if(t.qty > 1) pills += '<span class="pill qty">&times;' + t.qty + '</span>';
-  if(t.cost) pills += '<span class="pill price">' + money(t.cost) + '</span>';
+  /* the manager sees each task at HIS rate (77.5% of the scope price), so the page total is his pay;
+     JOB.scopeTotal and t.cost stay at 100% because the Change Order form bills Progress from them */
+  if(t.cost) pills += '<span class="pill price">' + money(Math.round(t.cost * (typeof JOB.laborPct === "number" ? JOB.laborPct : 77.5)) / 100) + '</span>';
   var cartBtn = taskCartBtn(t);
 
   return '<div class="task' + (d ? " done" : "") + '" data-id="' + t.id + '" style="--tc:var(' + TRADES[t.trade][1] + ')">'
@@ -2447,7 +2449,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261008-231721";          // stamped in at publish time
+  var CAM_BUILD = "20261011-142821";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2489,8 +2491,9 @@ if(camOn()){
 /* ============================ RECEIPTS & PAYOUT ============================ */
 /* Manager-only. Log the supplies bought for a job — snap the paper receipt or
    pick a file/PDF (e.g. one emailed by the supplier) — plus the dollar amount.
-   Shows the payout live: scope total − supplies, then the manager's cut and the
-   owner's share. Off entirely on the crew / view-only pages (no prices there). */
+   Shows the manager's pay live: his 77.5% of the job, less his 77.5% share of the
+   supplies. The owner's split is NEVER shown here (Steve, 2026-10-11) - it lives only in
+   the owner report. Off entirely on the crew / view-only pages (no prices there). */
 var RCP_PCT = (typeof JOB !== "undefined" && typeof JOB.laborPct === "number") ? JOB.laborPct : 77.5;
 function rcpManager(){ return (typeof JOB !== "undefined") && JOB.scopeTotal > 0 && !(typeof VIEWONLY !== "undefined" && VIEWONLY); }
 function rcpOn(){ return typeof BACKEND_URL === "string" && !!BACKEND_URL; }
@@ -2541,8 +2544,8 @@ function rcpPayout(){
   var total=Number(JOB.scopeTotal)||0, S=rcpSupplies();
   var net=Math.round((total-S)*100)/100;
   var mgr=Math.round(net*RCP_PCT)/100;
-  var own=Math.round((net*100 - mgr*100))/100;
-  return {total:total, supplies:S, net:net, mgr:mgr, own:own, pct:RCP_PCT};
+  var jobPay=Math.round(total*RCP_PCT)/100;               // the job at the manager's rate - what the page prices show
+  return {total:total, supplies:S, mgr:mgr, jobPay:jobPay, supShare:Math.round((jobPay-mgr)*100)/100, pct:RCP_PCT};
 }
 
 /* ---- file inputs: camera + file/PDF ---- */
@@ -2645,12 +2648,11 @@ function rcpPanel(){
   rcpUrls.forEach(function(u){ URL.revokeObjectURL(u); }); rcpUrls=[];
   var p=rcpPayout();
   var h='<section class="co-card pay">'
-    + '<div class="pay-row"><span>Scope total</span><b class="mono">'+money(p.total)+'</b></div>'
-    + '<div class="pay-row"><span>Supplies (receipts)</span><b class="mono neg">&minus;'+money(p.supplies)+'</b></div>'
-    + '<div class="pay-row net"><span>Net for split</span><b class="mono">'+money(p.net)+'</b></div>'
-    + '<div class="pay-split"><div class="pay-cut mgr"><div class="k">Manager &middot; '+p.pct+'%</div><div class="v mono">'+money(p.mgr)+'</div></div>'
-    + '<div class="pay-cut own"><div class="k">Owner &middot; '+Math.round((100-p.pct)*10)/10+'%</div><div class="v mono">'+money(p.own)+'</div></div></div>'
-    + (p.supplies ? '<p class="pay-note">Owner is also paid back the '+money(p.supplies)+' in supplies fronted for this job.</p>' : '')
+    + '<div class="pay-row"><span>Job pay</span><b class="mono">'+money(p.jobPay)+'</b></div>'
+    + '<div class="pay-row"><span>Supplies '+(p.supplies ? '('+money(p.supplies)+' in receipts &middot; your '+p.pct+'% share)' : '(none logged yet)')+'</span>'
+    +   '<b class="mono neg">&minus;'+money(p.supShare)+'</b></div>'
+    + '<div class="pay-split" style="grid-template-columns:1fr"><div class="pay-cut mgr"><div class="k">Your pay</div><div class="v mono">'+money(p.mgr)+'</div></div></div>'
+    + '<p class="pay-note">Job pay matches the prices on this page. Log every supply receipt below &mdash; your share of them comes off your pay.</p>'
     + '</section>';
 
   /* add-a-receipt card */

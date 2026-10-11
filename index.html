@@ -225,7 +225,7 @@ main{padding:18px 0 40px}
 <div id="app" hidden>
   <div class="top"><div class="top-in"><div class="brand">
     <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M12 9c0-3 2-5 6-5 0 4-3 5-6 5zM12 12C12 9 9 7 5 7c0 4 4 5 7 5z"/></svg></span>
-    <div><h1>Florida&rsquo;s Green Thumb</h1><div class="sub">Turn sheets &middot; crew hub</div></div>
+    <div><h1 id="brandName">Florida&rsquo;s Green Thumb</h1><div class="sub">Turn sheets &middot; crew hub</div></div>
   </div></div></div>
   <div class="hero" aria-hidden="true"></div>
   <main class="wrap">
@@ -233,6 +233,7 @@ main{padding:18px 0 40px}
     <div class="rolebadge" id="roleBadge"></div>
     <button class="managecrew" id="manageCrew" type="button" hidden>&#128101; Manage crew &amp; codes</button>
     <button class="managecrew" id="payoutsBtn" type="button" hidden>&#128181; Manager payouts</button>
+    <button class="managecrew" id="ownerBtn" type="button" hidden>&#128202; Owner report</button>
     <button class="alertsbtn" id="alerts" hidden></button>
     <div class="alertshint" id="alertsHint" hidden></div>
     <div id="list"></div>
@@ -260,7 +261,7 @@ main{padding:18px 0 40px}
 
 <script>
 var SCOPES = [{"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966", "turnLabel": "487966", "co": 0, "completed": true, "completedAt": "Sep 23, 2026 · 3:58 PM", "completedDate": "2026-09-23", "assignedTo": [], "tasks": 37, "total": 1976.9, "pct": 77.5, "liveUrl": "geese-trail/", "hasCrew": true}, {"h1": "10228 Geese Trail Cir", "city": "Sun City Center, FL 33573", "turn": "487966CO", "turnLabel": "487966", "co": 1, "completed": true, "completedAt": "", "completedDate": "2026-10-07", "assignedTo": [], "tasks": 4, "total": 455.76, "pct": 77.5, "liveUrl": "geese-trail-co/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625CR", "turnLabel": "553625", "co": 1, "completed": true, "completedAt": "Sep 24, 2026 · 3:37 PM", "completedDate": "2026-09-24", "assignedTo": [], "tasks": 21, "total": 1311.78, "pct": 77.5, "liveUrl": "bridlewood-cr/", "hasCrew": true}, {"h1": "1038 Bridlewood Way", "city": "Brandon, FL 33511", "turn": "553625", "turnLabel": "553625", "co": 0, "completed": true, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 51, "total": 3117.76, "pct": 77.5, "liveUrl": "bridlewood/", "hasCrew": false}, {"h1": "24922 Oakhaven Ct", "city": "Lutz, FL 33559", "turn": "143898", "turnLabel": "143898", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-10-06", "assignedTo": [], "tasks": 34, "total": 1753.77, "pct": 77.5, "liveUrl": "oakhaven/", "hasCrew": true}, {"h1": "28709 Seashell Ct", "city": "Wesley Chapel, FL 33545", "turn": "779484", "turnLabel": "779484", "co": 0, "completed": false, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 32, "total": 1369.21, "pct": 77.5, "liveUrl": "seashell/", "hasCrew": true}, {"h1": "30230 Rattana Ct", "city": "Wesley Chapel, FL 33545", "turn": "FL18465", "turnLabel": "FL18465", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-10-05", "assignedTo": [], "tasks": 20, "total": 961.4, "pct": 77.5, "liveUrl": "rattana-court/", "hasCrew": true}, {"h1": "3167 Bridge Haven Dr", "city": "Wesley Chapel, FL 33543", "turn": "FL19663", "turnLabel": "FL19663", "co": 0, "completed": true, "completedAt": "Sep 29, 2026 · 4:17 PM", "completedDate": "2026-09-29", "assignedTo": [], "tasks": 3, "total": 382.55, "pct": 77.5, "liveUrl": "bridge-haven/", "hasCrew": true}, {"h1": "3927 Constantine Loop", "city": "Wesley Chapel, FL 33543", "turn": "152779", "turnLabel": "152779", "co": 0, "completed": true, "completedAt": "Oct 1, 2026 · 1:24 PM", "completedDate": "2026-10-01", "assignedTo": [], "tasks": 34, "total": 1870.94, "pct": 77.5, "liveUrl": "constantine-loop/", "hasCrew": true}, {"h1": "4001 Constantine Loop", "city": "Wesley Chapel, FL 33543", "turn": "148235", "turnLabel": "EVIC 148235", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-10-07", "assignedTo": [], "tasks": 31, "total": 1881.31, "pct": 77.5, "liveUrl": "constantine-4001/", "hasCrew": true}, {"h1": "4910 Hi Vista Cir", "city": "Tampa, FL 33625", "turn": "546674", "turnLabel": "546674", "co": 0, "completed": true, "completedAt": "", "completedDate": "", "assignedTo": [], "tasks": 6, "total": 114.74, "pct": 77.5, "liveUrl": "hi-vista/", "hasCrew": false}, {"h1": "6387 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24569", "turnLabel": "FL24569", "co": 0, "completed": true, "completedAt": "Sep 25, 2026 · 12:58 PM", "completedDate": "2026-09-25", "assignedTo": [], "tasks": 9, "total": 704.0, "pct": 77.5, "liveUrl": "atlantic-beach/", "hasCrew": true}, {"h1": "6824 Atlantic Beach Ave", "city": "Wesley Chapel, FL 33544", "turn": "FL24472", "turnLabel": "FL24472", "co": 0, "completed": true, "completedAt": "", "completedDate": "2026-10-08", "assignedTo": [], "tasks": 6, "total": 496.55, "pct": 77.5, "liveUrl": "atlantic-beach-6824/", "hasCrew": true}];
-var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "viewerPw": "1234", "people": [], "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c", "extraPayouts": [{"id": "kendall-heath-paint", "name": "Kendall Heath Dr", "label": "Paint job (not on the portal)", "total": 3800.0, "supplies": 0.0, "pct": 77.5, "week": "2026-09-27", "date": "2026-09-30"}]};   /* {pw, backendUrl, backendKey} */
+var HUB = {"crewPw": "greenthumb", "managerPw": "gtboss", "ownerHash": "ea89939ef95fc374b881f1e12ac19cef2c87bc1d6ee9a711f5cbbb791c161c14", "crewCompany": "JB Alterations and Repairs", "viewerPw": "1234", "people": [], "backendUrl": "https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", "backendKey": "tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0", "vapidPublic": "BLvvGzm1PCKEff6vfjqWyXjLgozDtPXFZrAot0BN5P4rKz1bADqKCC1tMrPsOhl1-gR__W1pBbVvegpL2AAR_6c", "extraPayouts": [{"id": "kendall-heath-paint", "name": "Kendall Heath Dr", "label": "Paint job (not on the portal)", "total": 3800.0, "supplies": 0.0, "pct": 77.5, "week": "2026-09-27", "date": "2026-09-30"}]};   /* {pw, backendUrl, backendKey} */
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function money(n){return "$"+(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -294,7 +295,7 @@ function personName(id){ var p = PEOPLE.filter(function(x){ return x.id === id; 
 /* light gate: keeps casual visitors out of a public URL. Not bank security —
    the code lives in the page. Real privacy would need a server login. */
 /* two codes: crew (opens the no-price pages) and manager (opens the priced pages) */
-var ROLE = "crew", PERSON = "", PERSON_NAME = "";   /* PERSON = logged-in crew person's id ("" = generic crew) */
+var ROLE = "crew", PERSON = "", PERSON_NAME = "", OWNER = false;   /* OWNER = logged in with the owner code (manager powers + owner report) */   /* PERSON = logged-in crew person's id ("" = generic crew) */
 function unlock(role, personId, personName){
   ROLE = role; PERSON = personId || ""; PERSON_NAME = personName || "";
   try{ sessionStorage.setItem("fgt.in", role);
@@ -302,11 +303,14 @@ function unlock(role, personId, personName){
   document.getElementById("gate").hidden = true;
   var app = document.getElementById("app"); app.hidden = false;
   var b = document.getElementById("roleBadge");
-  if(b) b.textContent = (role === "manager" ? "Manager — prices shown"
+  if(b) b.textContent = (OWNER ? "Owner — full numbers" : role === "manager" ? "Manager — prices shown"
       : role === "viewer" ? "Viewer — look only"
       : PERSON_NAME ? (PERSON_NAME + "'s jobs") : "Crew view") + " · tap to switch";
   var mc = document.getElementById("manageCrew"); if(mc) mc.hidden = (role !== "manager");
   var pb = document.getElementById("payoutsBtn"); if(pb) pb.hidden = (role !== "manager");
+  var ob = document.getElementById("ownerBtn"); if(ob) ob.hidden = !OWNER;
+  var bn = document.getElementById("brandName");          // the crew works under the manager's company
+  if(bn) bn.textContent = (!OWNER && (role === "manager" || role === "crew")) ? (HUB.crewCompany || "Florida’s Green Thumb") : "Florida’s Green Thumb";
   render(); poll(); refreshAlerts(); fetchConfig();
 }
 document.getElementById("gform").addEventListener("submit",function(e){
@@ -316,20 +320,31 @@ document.getElementById("gform").addEventListener("submit",function(e){
   if(HUB.managerPw && v === HUB.managerPw){ return unlock("manager"); }
   if(HUB.viewerPw && v === HUB.viewerPw){ return unlock("viewer"); }
   if(v === HUB.crewPw){ return unlock("crew"); }
-  /* a personal crew code? the back end holds those (manager-managed) */
   err.textContent = "Checking…";
+  ownerMatch(v).then(function(isOwner){
+    if(isOwner){ OWNER = true; try{ sessionStorage.setItem("fgt.owner", HUB.ownerHash); }catch(e){} err.textContent = ""; return unlock("manager"); }
+  /* a personal crew code? the back end holds those (manager-managed) */
   hubApi("login", {code:v}).then(function(r){
     if(r && r.ok){ err.textContent = ""; unlock("crew", r.id, r.name); }
     else err.textContent = "That code didn't match. Ask your manager.";
   }).catch(function(){ err.textContent = "Couldn't check that code — try again."; });
+  });
 });
+function ownerMatch(v){                 // compare a SHA-256 of what was typed with the stored hash
+  if(!HUB.ownerHash || !(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve(false);
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)).then(function(buf){
+    var hex = Array.prototype.map.call(new Uint8Array(buf), function(x){ return ("0" + x.toString(16)).slice(-2); }).join("");
+    return hex === HUB.ownerHash;
+  }).catch(function(){ return false; });
+}
 function relock(){
-  try{ sessionStorage.removeItem("fgt.in"); sessionStorage.removeItem("fgt.pid"); sessionStorage.removeItem("fgt.pn"); }catch(e){}
+  try{ sessionStorage.removeItem("fgt.in"); sessionStorage.removeItem("fgt.pid"); sessionStorage.removeItem("fgt.pn"); sessionStorage.removeItem("fgt.owner"); }catch(e){}
   location.reload();
 }
 document.getElementById("out").addEventListener("click", relock);
 (function(){ var rb = document.getElementById("roleBadge"); if(rb){ rb.style.cursor = "pointer"; rb.addEventListener("click", relock); } })();
 try{ var r = sessionStorage.getItem("fgt.in");
+  OWNER = (r === "manager" && !!HUB.ownerHash && sessionStorage.getItem("fgt.owner") === HUB.ownerHash);
   if(r === "manager" || r === "crew" || r === "viewer")
     unlock(r, sessionStorage.getItem("fgt.pid") || "", sessionStorage.getItem("fgt.pn") || "");
 }catch(e){}
@@ -358,7 +373,7 @@ function card(s){
     + '<span class="go">'+(s.completed ? 'View &rarr;' : 'Open &rarr;')+'</span></div>'
     + '<div class="meta"><span class="chip turn">Turn '+esc(s.turnLabel || s.turn)+'</span>'
     + '<span class="chip">'+s.tasks+' task'+(s.tasks===1?"":"s")+'</span>'
-    + (ROLE === "manager" ? '<span class="chip total">'+money(s.total)+'</span>' : '') + '</div>'
+    + (ROLE === "manager" ? '<span class="chip total">'+money(OWNER ? s.total : Math.round((s.total || 0) * (typeof s.pct === "number" ? s.pct : 77.5)) / 100)+'</span>' : '') + '</div>'
     + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
     + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
     + (s.completed
@@ -827,6 +842,75 @@ function pyClick(e){
   }
 }
 (function(){ var b = document.getElementById("payoutsBtn"); if(b) b.addEventListener("click", openPayouts); })();
+/* ===================== OWNER REPORT (owner code only) =====================
+   Full numbers incl. the owner's share. The manager never sees this (Steve, 2026-10-11).
+   Same math as the job pages: net = scope total - receipts; manager = net x pct;
+   owner earns net - manager, and is also paid back the supplies he fronted. */
+var owEl = null;
+function closeOwner(){ if(owEl){ owEl.remove(); owEl = null; if(!mcEl && !asgEl && !pyEl) document.body.style.overflow = ""; } }
+function openOwner(){
+  if(owEl || !OWNER) return;
+  owEl = openModal('<div class="mm-top"><h3>Owner report</h3><button class="mm-x" data-ow="close" aria-label="Close">&times;</button></div>'
+    + '<p class="mm-p">Only your owner code opens this. Full scope price, the manager&rsquo;s pay, and what you keep &mdash; by the week each job was finished.</p>'
+    + '<div id="owBody"><div class="mm-load">Adding it up&hellip;</div></div>');
+  owEl.addEventListener("click", function(e){ if(e.target === owEl || e.target.closest('[data-ow="close"]')) closeOwner(); });
+  hubApi("summary").then(function(j){
+    if(j && j.ok) SCOPES.forEach(function(s){
+      var d = j.scopes && j.scopes[s.turn];
+      if(!s.completed && d && d.completedAt){
+        s.completed = true;
+        if(!s.completedDate){ try{ s.completedDate = new Date(d.completedAt*1000).toLocaleDateString("en-CA",{timeZone:"America/New_York"}); }catch(e){} }
+      }
+    });
+  }).catch(function(){}).then(function(){
+    var done = SCOPES.filter(function(s){ return s.completed; });
+    return Promise.all(done.map(function(s){
+      return hubApi("receipts", {turn:s.turn}).then(function(r){ return (r && r.ok) ? (+r.total || 0) : null; }).catch(function(){ return null; });
+    })).then(function(sup){
+      var calc = function(name, iso, week, total, supplies, pct){
+        var net = r2((total || 0) - (supplies || 0)), mgr = Math.round(net * pct) / 100;
+        return {name:name, iso:iso, week:week, total:total || 0, supplies:supplies, mgr:mgr, own:r2(net - mgr)};
+      };
+      paintOwner(done.map(function(s, i){
+        return calc(s.h1 + (s.co ? " · CO #" + s.co : ""), payIso(s), "", s.total, sup[i], typeof s.pct === "number" ? s.pct : 77.5);
+      }).concat((HUB.extraPayouts || []).map(function(m){
+        return calc(m.name + " (off-portal)", m.date || "", m.week || "", m.total, m.supplies || 0, m.pct || 77.5);
+      })));
+    });
+  });
+}
+function paintOwner(rows){
+  var box = document.getElementById("owBody"); if(!box) return;
+  rows.sort(function(a, b){ return (b.iso || b.week || "").localeCompare(a.iso || a.week || ""); });
+  var groups = [], byKey = {}, G = {total:0, mgr:0, own:0, sup:0}, failed = 0;
+  rows.forEach(function(r){
+    var w = payWeek(r.iso || r.week) || {key:"~", label:"No completion date recorded"};
+    if(!byKey[w.key]){ byKey[w.key] = {label:w.label, rows:[], total:0, mgr:0, own:0, sup:0}; groups.push(byKey[w.key]); }
+    var g = byKey[w.key]; g.rows.push(r);
+    [g, G].forEach(function(t){ t.total += r.total; t.mgr += r.mgr; t.own += r.own; t.sup += (r.supplies || 0); });
+    if(r.supplies === null) failed++;
+  });
+  var line = function(k, v, cls){ return '<div class="py-gl' + (cls ? ' ' + cls : '') + '"><span>' + k + '</span>' + v + '</div>'; };
+  var html = '<div class="py-grand">'
+    + line('Scope total (billed)', '<b>' + money(r2(G.total)) + '</b>')
+    + line('Manager pay', '<span>&minus;' + money(r2(G.mgr)) + '</span>', 'py-gsub')
+    + line('Supplies paid back to you', '<span>' + money(r2(G.sup)) + '</span>', 'py-gsub')
+    + line('Your earnings', '<b>' + money(r2(G.own)) + '</b>', 'py-gprofit') + '</div>';
+  if(failed) html += '<div class="mm-err">Receipts didn&rsquo;t load for ' + failed + ' job' + (failed>1?'s':'') + '. Close and reopen to retry.</div>';
+  groups.forEach(function(g){
+    html += '<div class="py-week"><span>' + esc(g.label) + '</span><b>' + money(r2(g.own)) + '</b></div>'
+      + '<div class="py-wprofit">Billed ' + money(r2(g.total)) + ' &middot; manager ' + money(r2(g.mgr)) + (g.sup ? ' &middot; supplies back ' + money(r2(g.sup)) : '') + '</div>';
+    g.rows.forEach(function(r){
+      html += '<div class="py-row" style="cursor:default"><div><div class="py-name">' + esc(r.name) + '</div>'
+        + '<div class="py-sub">' + (r.iso ? 'Completed ' + esc(doneDate(r.iso)) : 'Completion date not recorded') + '</div>'
+        + '<div class="py-sub">Billed ' + money(r.total) + ' &middot; manager ' + money(r.mgr) + (r.supplies ? ' &middot; supplies back ' + money(r.supplies) : '') + '</div></div>'
+        + '<div class="py-amt">' + money(r.own) + '</div></div>';
+    });
+  });
+  box.innerHTML = html;
+}
+(function(){ var b = document.getElementById("ownerBtn"); if(b) b.addEventListener("click", openOwner); })();
+
 document.getElementById("list").addEventListener("click", function(e){
   var b = e.target.closest("[data-assign]");
   if(b){ e.preventDefault(); openAssign(b.dataset.assign); }
