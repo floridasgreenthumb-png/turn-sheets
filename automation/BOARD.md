@@ -31,6 +31,11 @@ New job → user looks at it and adds a price in the portal (**Needs price**) �
 estimate approved first (**Waiting approval**) → **Approved – can close** → user does the
 work and closes it in the portal → it disappears from the portal → removed from the board.
 
+## AMH IS OFF (owner, 10/12) — overrides everything below about AMH
+The owner handles American Homes 4 Rent by hand. Never add, update or delete AMH jobs (ids `amh-…`),
+ignore AMH emails (amh.com, cdr@yardi.com AMH payments) and any `AMH` lines in "Portal changes"
+emails. AMH jobs on the board stay until the owner removes them himself.
+
 ## Source of truth
 AMH, Relay and Maymont close jobs inside their own portals and send no email when a job
 closes (the only later email is an invoice or payment). So email can add jobs but can't say
