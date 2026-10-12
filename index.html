@@ -373,7 +373,7 @@ function card(s){
     + '<span class="go">'+(s.completed ? 'View &rarr;' : 'Open &rarr;')+'</span></div>'
     + '<div class="meta"><span class="chip turn">Turn '+esc(s.turnLabel || s.turn)+'</span>'
     + '<span class="chip">'+s.tasks+' task'+(s.tasks===1?"":"s")+'</span>'
-    + (ROLE === "manager" ? '<span class="chip total">'+money(OWNER ? s.total : Math.round((s.total || 0) * (typeof s.pct === "number" ? s.pct : 77.5)) / 100)+'</span>' : '') + '</div>'
+    + (ROLE === "manager" ? '<span class="chip total">'+money(OWNER || !s.completed ? s.total : Math.round((s.total || 0) * (typeof s.pct === "number" ? s.pct : 77.5)) / 100)+'</span>' : '') + '</div>'
     + '<div class="bar"><i data-bar="'+esc(s.turn)+'"></i></div>'
     + '<div class="prog"><span data-done="'+esc(s.turn)+'">Tap to open</span>'
     + (s.completed
