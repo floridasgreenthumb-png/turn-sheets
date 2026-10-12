@@ -7,6 +7,20 @@ Job ids: `coupa-<PO>`, `dispatch-<J-number>`, `amh-<WO>` (or `amh-<address>` for
 Job fields: company (progress|amh|maymont), portal, ref, street, city, state, zip, lat, lng,
 geo (exact|approx|none), title, items, amount, needBy, received, status
 (new|price|waiting|approved|open|check), statusNote, tenant, phone, project, workOrder, updatedAt.
+Also (optional): `link` (https URL that opens this job in its portal, taken from the job email's
+"view work order"/"view offer"/PO link), `links` [{label,url}] for extra pages, and `photos` [asset ids].
+When updating an existing job, **merge** (ArtifactData `update`), never `set` over it, so `link` and
+`photos` survive. The crew's own uploads live in `photos/<jobId>` {ids:[...]} — never write or delete those.
+
+## Job links and photos
+- Link: when an email for a job has a link to the work order / offer / PO in its portal, save it as `link`.
+  Only https links; never a tracking-wrapped or one-time login link if a plain one is present.
+- Photos: AMH, Dispatch and Maymont job emails sometimes attach photos (jpg/png/heic). For each new
+  image attachment: save it, convert HEIC to JPEG, scale to max 1600 px, upload it with the Artifact tool
+  (`url` = the board, `asset: true`, `file_path`), and append the returned asset id to that job's `photos`
+  (skip ids/files already there). Max 10 photos per job from email.
+- **Relay: no attachments.** Relay's large scope documents are not wanted on the board — Relay jobs get a link only.
+
 
 Runs hourly 7 AM–6 PM Mon–Sat (Eastern) in the Route Board session.
 Work only on emails newer than `meta/sync.lastRun` (search with `newer_than:2h`

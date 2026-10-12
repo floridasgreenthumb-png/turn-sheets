@@ -57,6 +57,17 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
 .detail .txt{white-space:pre-wrap;overflow-wrap:anywhere}
 .detail .kv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85rem;color:var(--muted)}
 .detail .kv b{color:var(--ink);font-weight:600}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.lnk{font:600 .75rem var(--f-display);letter-spacing:.05em;text-transform:uppercase;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 9px;background:var(--bg);cursor:pointer}
+.lnk:hover{border-color:var(--ink)}
+.lnk:focus-visible,.thumb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.photos{display:flex;flex-wrap:wrap;gap:6px}
+.thumb{width:72px;height:72px;border-radius:6px;border:1px solid var(--line);overflow:hidden;padding:0;background:var(--map-bg);cursor:zoom-in}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.upmsg{font:400 .75rem var(--f-mono);color:var(--muted)}
+.lightbox{position:fixed;inset:0;z-index:50;background:rgb(0 0 0 / .86);display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.lightbox .cap{position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));color:#fff;text-align:center;font:500 .8rem var(--f-mono)}
 .card{position:absolute;left:8px;right:8px;bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgb(0 0 0 / .18);display:grid;gap:6px;max-height:55%;overflow:auto;font-size:.88rem}
 .card .addr{font-size:1.05rem}
 .card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -147,6 +158,8 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
     </section>
   </main>
 
+  <div class="lightbox" id="lightbox" hidden><img id="lbimg" alt=""><div class="cap" id="lbcap"></div></div>
+  <input type="file" id="photoIn" accept="image/*" multiple hidden>
   <div class="routebar" id="routebar" hidden>
     <span class="count" id="rcount"></span>
     <span class="est" id="rest"></span>
@@ -163,7 +176,7 @@ const COMPANY = {progress:{name:"Progress",cls:"b-progress",color:"--progress"},
 const STATUS = {new:"New",price:"Needs price",waiting:"Waiting approval",approved:"Approved – can close",open:"Open",check:"Check status"};
 const DEFAULT_HOME = {address:"8424 Lagerfeld Dr, Land O Lakes, FL 34637", lat:28.279425794589, lng:-82.475376417704};
 let jobs = [], plan = {}, home = DEFAULT_HOME, meta = null, db = null;
-let active = null;
+let active = null, assets = null, userPhotos = {}, upMsg = {};
 let fCompany = new Set(), fStatus = new Set(), q = "", showDone = false;
 const $ = id => document.getElementById(id);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -229,8 +242,58 @@ function detailHtml(j){
     <div><div class="lbl">What needs to be done</div><div class="txt">${work.length?work.map(esc).join("\n\n"):"No instructions in the email yet. Check the portal."}</div></div>
     ${j.statusNote?`<div><div class="lbl">Status</div><div class="txt">${esc(j.statusNote)}</div></div>`:""}
     ${kv?`<div class="kv">${kv}</div>`:""}
+    ${linksHtml(j)}
+    ${photosHtml(j)}
   </div>`;
 }
+function photoIds(j){ return [...(Array.isArray(j.photos)?j.photos:[]), ...(userPhotos[j.id]?.ids||[])].filter((v,i,a)=>typeof v==="string"&&a.indexOf(v)===i); }
+function linksHtml(j){
+  const ls=[]; const safe=u=>/^https:\/\//i.test(u||"");
+  if(safe(j.link)) ls.push(`<a class="lnk" href="${esc(j.link)}" target="_blank" rel="noopener">Open in ${esc(j.portal||"portal")}</a>`);
+  (Array.isArray(j.links)?j.links:[]).filter(l=>safe(l?.url)).forEach(l=>ls.push(`<a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label||"Link")}</a>`));
+  const a=fullAddr(j); if(a) ls.push(`<a class="lnk" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}" target="_blank" rel="noopener">Directions</a>`);
+  return ls.length?`<div class="links">${ls.join("")}</div>`:"";
+}
+function photosHtml(j){
+  const ids=photoIds(j);
+  const th=ids.map((id,i)=>`<button class="thumb" type="button" data-photo="${esc(id)}" data-job="${esc(j.id)}" aria-label="Photo ${i+1} of ${ids.length}"><img src="/_blob/${encodeURIComponent(id)}" alt="" loading="lazy" onerror="this.parentNode.hidden=true"></button>`).join("");
+  const add=assets?`<button class="lnk" type="button" data-addphoto="${esc(j.id)}">+ Add photo</button>`:"";
+  if(!th && !add) return "";
+  return `<div><div class="lbl">Photos${ids.length?` (${ids.length})`:""}</div><div class="photos">${th}${add}</div>${upMsg[j.id]?`<div class="upmsg">${esc(upMsg[j.id])}</div>`:""}</div>`;
+}
+let upJob=null;
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-photo]"); if(t){ e.stopPropagation(); openPhoto(t.dataset.job,t.dataset.photo); return; }
+  const a=e.target.closest("[data-addphoto]"); if(a){ e.stopPropagation(); upJob=a.dataset.addphoto; $("photoIn").value=""; $("photoIn").click(); }
+},true);
+function openPhoto(jid,id){ const j=jobs.find(x=>x.id===jid); const ids=j?photoIds(j):[id]; let i=Math.max(0,ids.indexOf(id));
+  const show=()=>{ $("lbimg").src="/_blob/"+encodeURIComponent(ids[i]); $("lbcap").textContent=`${j?fullAddr(j):""}  ·  ${i+1} / ${ids.length}${ids.length>1?"  ·  tap sides to flip, middle to close":""}`; };
+  show(); $("lightbox").hidden=false;
+  $("lightbox").onclick=ev=>{ const w=window.innerWidth; if(ids.length>1&&ev.clientX<w*.3){ i=(i-1+ids.length)%ids.length; show(); } else if(ids.length>1&&ev.clientX>w*.7){ i=(i+1)%ids.length; show(); } else $("lightbox").hidden=true; };
+}
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("lightbox").hidden=true; });
+async function shrink(file){
+  // phone photos are large: scale to 1600px on the long side as JPEG
+  try{ const bmp=await createImageBitmap(file); const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",.82)); }
+  catch(e){ return file; }
+}
+$("photoIn").addEventListener("change", async e=>{
+  const files=[...e.target.files], jid=upJob; if(!files.length||!jid||!assets||!db) return;
+  const added=[]; upMsg[jid]=`Uploading ${files.length} photo${files.length>1?"s":""}…`; render(); refreshCard();
+  for(const f of files){
+    try{ const r=await assets.upload(await shrink(f),{type:"image/jpeg"}); added.push(r.id); }
+    catch(err){ upMsg[jid]= err?.code==="too_large"?"That photo is too big to upload.": err?.code==="quota_or_state"?"The board's photo storage is full.": "A photo didn't upload. Try again."; }
+  }
+  if(added.length){
+    const ids=[...(userPhotos[jid]?.ids||[]),...added];
+    try{ await db.doc("photos/"+jid).set({ids, at:new Date().toISOString()}); userPhotos[jid]={ids}; if(upMsg[jid]?.startsWith("Uploading")) delete upMsg[jid]; }
+    catch(err){ upMsg[jid]="Photos uploaded but couldn't be saved to the job. Reload and try again."; }
+  }
+  render(); refreshCard();
+});
+function refreshCard(){ if(!$("card").hidden && active) showCard(jobs.find(x=>x.id===active)); }
 function selectFromMap(id){
   const j=jobs.find(x=>x.id===id); if(!j) return;
   // make sure the job is in the list even if a filter or search hides it
@@ -401,6 +464,8 @@ function syncLabel(){
   if(!db){ $("sync").textContent="Job data is only available when you open this page signed in to Claude."; drawMap(); return; }
   db.collection("jobs").onSnapshot(s => { jobs = s.docs.map(d=>({id:d.id,...d.data()})); buildFilters(); render(); syncLabel(); if(jobs.some(j=>j.lat!=null)) fit(); },
     e => { $("sync").textContent="Couldn't load jobs right now. Reload the page to try again."; });
+  try { assets = await window.claude?.use?.("assets"); } catch(e){ assets=null; }
+  db.collection("photos").onSnapshot(s => { userPhotos={}; s.docs.forEach(d=>userPhotos[d.id]=d.data()); render(); refreshCard(); }, ()=>{});
   db.collection("plan").onSnapshot(s => { plan={}; s.docs.forEach(d=>plan[d.id]=d.data()); buildFilters(); render(); }, ()=>{});
   db.doc("meta/sync").onSnapshot(d => { meta = d.exists? d.data(): null; syncLabel(); }, ()=>{});
   db.doc("settings/home").onSnapshot(d => { if(d.exists){ const h=d.data(); if(h.lat!=null) home={address:h.address,lat:h.lat,lng:h.lng}; $("homeAddr").value=h.address||home.address; base=null; render(); } }, ()=>{});
