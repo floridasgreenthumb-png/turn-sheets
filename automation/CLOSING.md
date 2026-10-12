@@ -45,6 +45,10 @@ owner (push notification) that the job needs a change order from him.
 - Never click Decline, Cancel or anything that changes price or schedule.
 
 ## Dispatch closing steps (owner, 10/12)
+**FOR NOW (owner, 10/12): the owner uploads the BEFORE photos and submits the estimate himself.**
+Claude starts at step 4, only once the Coupa "Purchase Order" email for that job has arrived
+(= the estimate is approved): upload the AFTER photos, invoice (QuickBooks + Coupa), mark Complete.
+Steps 2–3 below are kept for later.
 Order matters:
 1. Open the job on Dispatch (search by its work-order number J00…; finished jobs may not be in
    the active list).
