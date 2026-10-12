@@ -49,6 +49,20 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
 .job{display:grid;grid-template-columns:28px 1fr auto;gap:4px 10px;padding:10px 4px;border-bottom:1px solid var(--line);align-items:start;cursor:pointer}
 .job:hover{background:var(--surface)}
 .job.sel{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.job.active{background:color-mix(in srgb,var(--accent) 16%,var(--surface));box-shadow:inset 4px 0 0 var(--accent)}
+.job.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{background:color-mix(in srgb,var(--accent) 40%,var(--surface))}}
+.detail{grid-column:2/4;display:grid;gap:6px;padding:8px 10px;margin-top:4px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:.9rem}
+.detail .lbl{font:600 .7rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.detail .txt{white-space:pre-wrap;overflow-wrap:anywhere}
+.detail .kv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85rem;color:var(--muted)}
+.detail .kv b{color:var(--ink);font-weight:600}
+.card{position:absolute;left:8px;right:8px;bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgb(0 0 0 / .18);display:grid;gap:6px;max-height:55%;overflow:auto;font-size:.88rem}
+.card .addr{font-size:1.05rem}
+.card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card .x{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
+.card .btn{padding:6px 12px}
+.card .btn.line{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .job input{margin:3px 0 0 4px;width:18px;height:18px;accent-color:var(--accent)}
 .job .top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0}
 .badge{font:700 .7rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:1px 6px;border-radius:4px}
@@ -79,6 +93,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
 .routebar .stops{flex:1 1 100%;font-size:.82rem;opacity:.85;overflow-wrap:anywhere}
 .btn{font:700 .85rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 .btn.go{background:var(--accent);color:var(--accent-ink)}
+.btn.line:focus-visible,.card .x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn.ghost{background:transparent;color:var(--bg);border:1px solid color-mix(in srgb,var(--bg) 40%,transparent)}
 .btn:focus-visible,.chip:focus-visible,.tabs button:focus-visible,.job:focus-visible,.maptools button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .home{font-size:.8rem;color:var(--muted);padding-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -109,7 +124,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
         <input id="q" type="search" placeholder="Search address, PO, WO, tenant…" aria-label="Search jobs">
       </div>
       <div class="list" id="list">
-        <div class="empty" id="empty"><b>No open jobs loaded yet.</b><br>Every hour, 7Every night at 9&nbsp;PM the board fills with the jobs currently open onnbsp;AM–6Every night at 9&nbsp;PM the board fills with the jobs currently open onnbsp;PM, the board updates with the jobs currently open on Progress (Coupa, Dispatch, Relay), American Homes 4 Rent and Maymont. Tick jobs to build a route.</div>
+        <div class="empty" id="empty"><b>No open jobs loaded yet.</b><br>Every hour, 7&nbsp;AM–6&nbsp;PM, the board updates with the jobs currently open on Progress (Coupa, Dispatch, Relay), American Homes 4 Rent and Maymont. Tap a pin to see its job here; tick jobs to build a route.</div>
       </div>
       <div class="home">
         <label for="homeAddr">Start from</label>
@@ -127,6 +142,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:14px;min-hei
         </div>
         <div class="legend" id="legend"></div>
         <div class="tip" id="tip" hidden></div>
+        <div class="card" id="card" hidden></div>
       </div>
     </section>
   </main>
@@ -147,6 +163,7 @@ const COMPANY = {progress:{name:"Progress",cls:"b-progress",color:"--progress"},
 const STATUS = {new:"New",price:"Needs price",waiting:"Waiting approval",approved:"Approved – can close",open:"Open",check:"Check status"};
 const DEFAULT_HOME = {address:"8424 Lagerfeld Dr, Land O Lakes, FL 34637", lat:28.279425794589, lng:-82.475376417704};
 let jobs = [], plan = {}, home = DEFAULT_HOME, meta = null, db = null;
+let active = null;
 let fCompany = new Set(), fStatus = new Set(), q = "", showDone = false;
 const $ = id => document.getElementById(id);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -188,21 +205,54 @@ function render(){
   if (jobs.length && !v.length){ $("empty").hidden=false; $("empty").innerHTML="<b>No jobs match these filters.</b> Clear a filter or the search box."; }
   for (const j of v){
     const sel = !!plan[j.id]?.route;
-    const row = document.createElement("div"); row.className="job"+(sel?" sel":""); row.tabIndex=0; row.dataset.id=j.id;
+    const row = document.createElement("div"); row.className="job"+(sel?" sel":"")+(j.id===active?" active":""); row.tabIndex=0; row.dataset.id=j.id;
     const late = j.needBy && j.needBy < today;
     const c = COMPANY[j.company]||{name:j.company,cls:""};
     row.innerHTML = `<input type="checkbox" aria-label="Add to route" ${sel?"checked":""} ${j.lat==null?"disabled title='No map location yet'":""}>
       <div style="min-width:0"><div class="top"><span class="badge ${c.cls}">${esc(c.name)}</span><span class="portal">${esc(j.portal||"")} ${esc(j.ref||"")}</span></div>
       <div class="addr">${esc(fullAddr(j)||j.shortAddress||"Address not in email yet")}</div></div>
       <div class="right"><span class="pill s-${esc(j.status)}">${esc(plan[j.id]?.done?"Done":(STATUS[j.status]||j.status))}</span><span class="amt">${money(j.amount)}</span><button class="done" type="button">${plan[j.id]?.done?"Undo":"Done"}</button></div>
-      <div class="meta">${esc(j.title||j.items||"")}${j.tenant?` · ${esc(j.tenant)}`:""}${j.needBy?` · <span class="${late?"late":""}">need by ${esc(j.needBy)}</span>`:""}${j.statusNote?` · ${esc(j.statusNote)}`:""}${j.geo==="approx"?` · <span class="approx">pin approx.</span>`:""}${j.lat==null?` · <span class="approx">not on map</span>`:""}</div>`;
+      <div class="meta">${esc(j.title||j.items||"")}${j.tenant?` · ${esc(j.tenant)}`:""}${j.needBy?` · <span class="${late?"late":""}">need by ${esc(j.needBy)}</span>`:""}${j.statusNote?` · ${esc(j.statusNote)}`:""}${j.geo==="approx"?` · <span class="approx">pin approx.</span>`:""}${j.lat==null?` · <span class="approx">not on map</span>`:""}</div>${j.id===active?detailHtml(j):""}`;
     row.querySelector("input").onclick = e => { e.stopPropagation(); toggleRoute(j.id); };
     row.querySelector(".done").onclick = e => { e.stopPropagation(); setPlan(j.id,{done:!plan[j.id]?.done, route:false}); };
-    row.onclick = () => focusJob(j.id);
+    row.onclick = e => { if(e.target.closest(".detail")) return; active = active===j.id ? null : j.id; render(); if(active) focusJob(j.id); };
     row.onkeydown = e => { if(e.key===" "||e.key==="Enter"){ e.preventDefault(); if(j.lat!=null) toggleRoute(j.id); } };
     list.appendChild(row);
   }
   drawMap(); renderRoute();
+}
+function detailHtml(j){
+  const work = [j.title, j.items].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
+  const kv = [["PO / WO", j.ref], ["Project", j.project], ["Work order", j.workOrder], ["Need by", j.needBy], ["Received", j.received], ["Tenant", j.tenant], ["Phone", j.phone]]
+    .filter(([,v])=>v).map(([k,v])=>`<span>${k} <b>${esc(v)}</b></span>`).join("");
+  return `<div class="detail">
+    <div><div class="lbl">What needs to be done</div><div class="txt">${work.length?work.map(esc).join("\n\n"):"No instructions in the email yet. Check the portal."}</div></div>
+    ${j.statusNote?`<div><div class="lbl">Status</div><div class="txt">${esc(j.statusNote)}</div></div>`:""}
+    ${kv?`<div class="kv">${kv}</div>`:""}
+  </div>`;
+}
+function selectFromMap(id){
+  const j=jobs.find(x=>x.id===id); if(!j) return;
+  // make sure the job is in the list even if a filter or search hides it
+  if(!visible().some(x=>x.id===id)){ fCompany.clear(); fStatus.clear(); q=""; $("q").value=""; if(plan[id]?.done) showDone=true; buildFilters(); }
+  active=id; render(); centerOn(j);
+  const row=$("list").querySelector(`.job[data-id="${CSS.escape(id)}"]`);
+  if(row){ row.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"nearest"});
+    row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash"); }
+  showCard(j);
+}
+function showCard(j){
+  const card=$("card");
+  if(!j || !matchMedia("(max-width:760px)").matches){ card.hidden=true; return; }
+  const c=COMPANY[j.company]||{name:j.company,cls:""}, inRoute=!!plan[j.id]?.route;
+  card.innerHTML=`<div class="row"><span class="badge ${c.cls}">${esc(c.name)}</span><span class="portal">${esc(j.portal||"")} ${esc(j.ref||"")}</span><button class="x" type="button" aria-label="Close">×</button></div>
+    <div class="addr">${esc(fullAddr(j)||j.shortAddress||"")}</div>${detailHtml(j)}
+    <div class="row"><button class="btn go" type="button" data-a="route">${inRoute?"Remove from route":"Add to route"}</button><button class="btn line" type="button" data-a="list">Show in list</button></div>`;
+  card.hidden=false;
+  card.querySelector(".x").onclick=()=>{card.hidden=true;};
+  card.querySelector('[data-a="route"]').onclick=()=>{toggleRoute(j.id); showCard(jobs.find(x=>x.id===j.id));};
+  card.querySelector('[data-a="list"]').onclick=()=>{card.hidden=true; setTab("list");
+    const row=$("list").querySelector(`.job[data-id="${CSS.escape(j.id)}"]`); if(row) row.scrollIntoView({block:"center"}); };
 }
 function esc(s){ return String(s??"").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
 
@@ -291,10 +341,10 @@ function drawMap(keep){
   const ht=el("text",{x:h.x+10*u,y:h.y+4*u,"font-size":11*u,"font-family":css("--f-display"),"font-weight":"700",fill:css("--ink")}); ht.textContent="START";
   // pins
   const vis=new Set(visible().map(j=>j.id));
-  jobs.filter(j=>j.lat!=null).forEach(j=>{ const p=proj(j.lat,j.lng), on=vis.has(j.id), sel=!!plan[j.id]?.route;
+  jobs.filter(j=>j.lat!=null).forEach(j=>{ const p=proj(j.lat,j.lng), on=vis.has(j.id), sel=!!plan[j.id]?.route, act=j.id===active;
+    if(act) el("circle",{cx:p.x,cy:p.y,r:13*u,fill:"none",stroke:css("--accent"),"stroke-width":2.5*u});
     const c=el("circle",{cx:p.x,cy:p.y,r:(sel?7.5:6)*u,fill:css((COMPANY[j.company]||{}).color||"--muted"),stroke:sel?css("--accent"):css("--surface"),"stroke-width":(sel?3:1.5)*u,opacity:on?1:.25,"stroke-dasharray":j.geo==="approx"?`${2*u} ${2*u}`:"none"});
     c.style.cursor="pointer"; c.dataset.id=j.id;
-    c.addEventListener("click",ev=>{ev.stopPropagation(); toggleRoute(j.id);});
     c.addEventListener("pointerenter",ev=>showTip(j,ev)); c.addEventListener("pointerleave",()=>$("tip").hidden=true);
   });
   drawRouteLayer();
@@ -308,18 +358,21 @@ function drawRouteLayer(){
     const t=el("text",{x:p.x+9*u,y:p.y-5.5*u,"text-anchor":"middle","font-size":10*u,"font-weight":"700","font-family":css("--f-mono"),fill:css("--accent-ink")},g); t.textContent=i+1; });
 }
 function showTip(j,ev){ const t=$("tip"), r=$("mapbox").getBoundingClientRect();
-  t.innerHTML=`<b>${esc((COMPANY[j.company]||{}).name||"")} ${esc(j.ref||"")}</b><br>${esc(fullAddr(j))}<br>${esc(j.title||j.items||"")}${j.amount!=null?"<br>"+money(j.amount):""}<br><span class="portal">tap pin to ${plan[j.id]?.route?"remove from":"add to"} route</span>`;
+  t.innerHTML=`<b>${esc((COMPANY[j.company]||{}).name||"")} ${esc(j.ref||"")}</b><br>${esc(fullAddr(j))}<br>${esc(j.title||j.items||"")}${j.amount!=null?"<br>"+money(j.amount):""}<br><span class="portal">tap pin to see the job</span>`;
   t.hidden=false; t.style.left=Math.min(ev.clientX-r.left+12, r.width-250)+"px"; t.style.top=(ev.clientY-r.top+12)+"px"; }
+function centerOn(j){ if(!j||j.lat==null||!base) return; const p=proj(j.lat,j.lng); view.x=p.x-(base.x+base.w/2); view.y=p.y-(base.y+base.h/2); applyView(); }
 function focusJob(id){ const j=jobs.find(x=>x.id===id); if(!j||j.lat==null||!base) return; const p=proj(j.lat,j.lng);
   view.k=Math.max(view.k,3); view.x=p.x-(base.x+base.w/2); view.y=p.y-(base.y+base.h/2); applyView();
   if(matchMedia("(max-width:760px)").matches) setTab("map"); }
 // pan / zoom
-let drag=null; const pts=new Map();
-svg.addEventListener("pointerdown",e=>{ svg.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y,d:null,k:view.k}; if(pts.size===2){const [a,b]=[...pts.values()]; drag.d=Math.hypot(a.x-b.x,a.y-b.y);} });
+let drag=null, tap=null; const pts=new Map();
+svg.addEventListener("pointerdown",e=>{ tap={id:e.target?.dataset?.id||null,x:e.clientX,y:e.clientY,n:pts.size}; svg.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y,d:null,k:view.k}; if(pts.size===2){const [a,b]=[...pts.values()]; drag.d=Math.hypot(a.x-b.x,a.y-b.y);} });
 svg.addEventListener("pointermove",e=>{ if(!drag) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); const u=Number(svg.dataset.unit)||1;
   if(pts.size===2&&drag.d){const [a,b]=[...pts.values()]; view.k=Math.min(40,Math.max(.5,drag.k*Math.hypot(a.x-b.x,a.y-b.y)/drag.d)); applyView(); return;}
   view.x=drag.vx-(e.clientX-drag.x)*u; view.y=drag.vy-(e.clientY-drag.y)*u; applyView(); });
 const end=e=>{ pts.delete(e.pointerId); if(!pts.size) drag=null; };
+svg.addEventListener("pointerup",e=>{ if(!tap||tap.n||e.type!=="pointerup") return; const moved=Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>6;
+  if(!moved){ $("tip").hidden=true; if(tap.id) selectFromMap(tap.id); else { active=null; $("card").hidden=true; render(); } } tap=null; });
 svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
 svg.addEventListener("wheel",e=>{ e.preventDefault(); view.k=Math.min(40,Math.max(.5,view.k*(e.deltaY<0?1.2:1/1.2))); applyView(); },{passive:false});
 $("zin").onclick=()=>{view.k=Math.min(40,view.k*1.4);applyView();}; $("zout").onclick=()=>{view.k=Math.max(.5,view.k/1.4);applyView();}; $("zfit").onclick=fit;
