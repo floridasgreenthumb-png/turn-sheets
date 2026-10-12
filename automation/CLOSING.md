@@ -26,8 +26,9 @@ place of a picture.
 
 ## Not done yet → pause for a change order
 If the email notes say the job is not done / needs more work: do NOT close it. On Relay click
-**Pause**, choose the reason **Change Order**, and pick a date one week from today. Then tell the
-owner (push notification) that the job needs a change order from him.
+**Pause**, choose the reason **Change Order**, and pick a date one week from today. A paused job is NOT closed and NOT invoiced.
+Then email the owner (to floridasgreenthumb@gmail.com, subject "Change order needed - <address>
+(<job #>)") with the job number, address and the crew's note saying what's left to do.
 
 ## Relay closing steps (Relay asks no questions on Start Job / Job Complete)
 1. Open the job on Relay by its job number (T…). If it can't be found by the T-number, stop and
