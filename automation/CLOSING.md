@@ -19,11 +19,22 @@ Scan Gmail (owner asked every ~15 min) for new photo emails and match them to a 
 Never upload photos to a job unless the address matches exactly and only one open job has it.
 Label handled emails so they aren't used twice (Gmail label `job-closed`).
 
-## Relay closing steps
-1. Open the job on Relay (by its job number T…).
-2. Save all photos for that job from the email(s) to the laptop.
+## Which photos
+Upload only the **AFTER** photos (Relay and Dispatch). Photos given as links (RouteMaker) may be
+downloaded from the link, but always upload the actual picture files – never paste a link in
+place of a picture.
+
+## Not done yet → pause for a change order
+If the email notes say the job is not done / needs more work: do NOT close it. On Relay click
+**Pause**, choose the reason **Change Order**, and pick a date one week from today. Then tell the
+owner (push notification) that the job needs a change order from him.
+
+## Relay closing steps (Relay asks no questions on Start Job / Job Complete)
+1. Open the job on Relay by its job number (T…). If it can't be found by the T-number, stop and
+   tell the owner.
+2. Save the AFTER photos for that job from the email(s) to the laptop.
 3. Click **Start Job**.
-4. At the bottom, click **Attachments**, attach ALL the photos, and **Upload** them.
+4. At the bottom, click **Attachments**, attach ALL the after photos, and **Upload** them.
 5. Click **Job Complete**. Relay sometimes sticks: click again until the option to complete
    the job goes away.
 6. Then invoice it: follow automation/INVOICING.md (QuickBooks invoice → Coupa submit).
