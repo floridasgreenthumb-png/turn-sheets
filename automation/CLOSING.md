@@ -17,6 +17,9 @@ Scan Gmail (owner asked every ~15 min) for new photo emails and match them to a 
   AFTER photos (attached and/or linked). Use these for the same address if there's no
   "Job photos" email.
 Never upload photos to a job unless the address matches exactly and only one open job has it.
+Most photo emails are regular mowing customers (not on Relay or Dispatch): ignore any email whose
+address matches no open Relay or Progress Dispatch job. Dispatch jobs that aren't Progress
+(no Progress J-number, owner-created) are ignored too.
 Label handled emails so they aren't used twice (Gmail label `job-closed`).
 
 ## Which photos
