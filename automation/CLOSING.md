@@ -43,3 +43,22 @@ owner (push notification) that the job needs a change order from him.
 - First 5 closings: stop before **Job Complete** and let the owner check the uploaded photos.
 - Never close a job whose photos can't be matched to it with certainty.
 - Never click Decline, Cancel or anything that changes price or schedule.
+
+## Dispatch closing steps (owner, 10/12)
+Order matters:
+1. Open the job on Dispatch (search by its work-order number J00…; finished jobs may not be in
+   the active list).
+2. **Attachments → upload the BEFORE photos**, labelled **Before** (Dispatch lets you label each
+   upload Before or After).
+3. **Estimate:** pick the matching preset option in the drop-down for what was done (e.g.
+   pressure wash house, trim trees). Type the issue that was fixed in the **Description** field.
+   If the chosen option's price is **under $250, change it to $250**. Click **Save Estimate**, then
+   **Submit Estimate**. Estimates of $250 or less are approved automatically; higher ones wait
+   for Progress to approve.
+4. **Attachments → upload the AFTER photos**, labelled **After**.
+5. When the before and after photos are saved AND the estimate shows approved: invoice it –
+   QuickBooks (item Clean Up) and Coupa exactly as in automation/INVOICING.md (lien waiver PDF
+   first if over $500, Remit To, invoice #, Submit, must turn green).
+6. After the Coupa invoice is in (green), mark the job **Complete** on Dispatch.
+Not finished per the notes → don't estimate or close; tell the owner (change order).
+First 5: stop before Submit Estimate and before Complete so the owner can check.
