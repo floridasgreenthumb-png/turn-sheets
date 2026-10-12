@@ -51,14 +51,24 @@ Order matters:
 2. **Attachments → upload the BEFORE photos**, labelled **Before** (Dispatch lets you label each
    upload Before or After).
 3. **Estimate:** pick the matching preset option in the drop-down for what was done (e.g.
-   pressure wash house, trim trees). Type the issue that was fixed in the **Description** field.
+   pressure wash house, trim trees). If no option clearly fits, stop and ask the owner, and add
+   his answer to the "Estimate option choices" list below. In **Description**, write the
+   resolution to the issue stated in the work order (what was done to fix it).
    If the chosen option's price is **under $250, change it to $250**. Click **Save Estimate**, then
    **Submit Estimate**. Estimates of $250 or less are approved automatically; higher ones wait
    for Progress to approve.
 4. **Attachments → upload the AFTER photos**, labelled **After**.
-5. When the before and after photos are saved AND the estimate shows approved: invoice it –
+5. Wait for the Coupa PO: once the estimate is approved, Coupa emails "Purchase Order approved" /
+   "Progress Residential Purchase Order #<PO>" for that work order (its Work Order = the J-number
+   shown at the top of the Dispatch work order). The PO number comes from that email. No PO email
+   yet → don't invoice; check again next run.
+   When the before and after photos are saved, the estimate is approved AND the PO is in: invoice it –
    QuickBooks (item Clean Up) and Coupa exactly as in automation/INVOICING.md (lien waiver PDF
    first if over $500, Remit To, invoice #, Submit, must turn green).
 6. After the Coupa invoice is in (green), mark the job **Complete** on Dispatch.
+Photos: in the photo emails each picture is labelled Before or After underneath it – use that.
 Not finished per the notes → don't estimate or close; tell the owner (change order).
 First 5: stop before Submit Estimate and before Complete so the owner can check.
+
+### Estimate option choices (learned from the owner)
+(none yet – add "work described as X → option Y" as the owner answers)
