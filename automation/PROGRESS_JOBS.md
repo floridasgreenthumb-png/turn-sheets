@@ -158,3 +158,14 @@ For now the owner says when a job is ready to invoice.
   or when an invoice for that WO/PO already exists in QuickBooks or Coupa.
 - Never invoice an AMH, Maymont or owner-created Dispatch job with this process.
 - Never submit twice: check Coupa's Invoices tab and invoices.json first.
+
+
+# Part C – AMH (American Homes 4 Rent) close-out (owner, 10/13)
+- Owner adds the before photos and the bid. Ready when a "Bid approved" email for the WO is in
+  Gmail AND the AMH portal shows bid approved / Work in Progress.
+- Claude: upload AFTER photos on the AMH work order, complete the job, submit for validation.
+  No invoice goes to AMH or Coupa.
+- QuickBooks: customer American Homes 4 Rent (the one WITHOUT "CDR" in its name), item Clean Up,
+  amount = approved bid, description = WO number, Ship To = job address, today's date; email it to
+  floridasgreenthumb@gmail.com. No duplicates.
+- Dispatch update: ready when Dispatch shows the estimate Approved AND the Coupa PO email is in.
