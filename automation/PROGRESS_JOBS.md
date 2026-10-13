@@ -165,7 +165,7 @@ For now the owner says when a job is ready to invoice.
   Gmail AND the AMH portal shows bid approved / Work in Progress.
 - Claude: upload AFTER photos on the AMH work order, complete the job, submit for validation.
   No invoice goes to AMH or Coupa.
-- QuickBooks: customer American Homes 4 Rent (the one WITHOUT "CDR" in its name), item Clean Up,
+- QuickBooks: customer "American Homes 4 rent" (Id 3367, NOT the CDR one Id 3728), item Clean Up,
   amount = approved bid, description = WO number, Ship To = job address, today's date; email it to
   floridasgreenthumb@gmail.com. No duplicates.
 - Dispatch update: ready when Dispatch shows the estimate Approved AND the Coupa PO email is in.

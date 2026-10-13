@@ -36,7 +36,7 @@ Then go to STEP 4. After STEP 4 turns green, mark the job Complete on Dispatch.
 STEP 3C - AMH JOB (I add the before photos and the bid myself)
 1. Ready only when BOTH: a "Bid approved" email for that work order (WO number) is in Gmail, AND the AMH portal shows the order as bid approved / Work in Progress. Otherwise skip until next time.
 2. Open the work order on AMH (https://www.amh.com/my-amh/vendor-admin-orders, by its WO number). Upload the AFTER photos. Then complete the job and submit it for validation (for payment). AMH does not take an invoice.
-3. QuickBooks invoice (AMH is NOT invoiced in Coupa): if an invoice already mentions this WO, don't make another. Customer = American Homes 4 Rent - the one WITHOUT "CDR" in its name (never the CDR one). Item Clean Up, qty 1, amount = the approved bid amount, description = the WO number, Ship To = the job's address, today's date. Send it to floridasgreenthumb@gmail.com.
+3. QuickBooks invoice (AMH is NOT invoiced in Coupa): if an invoice already mentions this WO, don't make another. Customer = "American Homes 4 rent" (Id 3367) - NOT "American Homes 4 rent CDR" (Id 3728). Item Clean Up, qty 1, amount = the approved bid amount, description = the WO number, Ship To = the job's address, today's date. Send it to floridasgreenthumb@gmail.com.
 4. Label the photo email job-closed and log it in invoices.json. AMH skips STEP 4.
 
 STEP 4 - INVOICE (Relay and Dispatch only)
