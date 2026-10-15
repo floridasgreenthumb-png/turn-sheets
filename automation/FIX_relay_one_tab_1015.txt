@@ -1,0 +1,7 @@
+Please update BOTH of my scheduled tasks, "Portal Change Check" and "Relay close-out": add the block below to each prompt, right at the top under the first paragraph (keep everything else the same). Save both.
+
+OWNER'S RULE 10/15 - ONE RELAY TAB ONLY (in his words: "new tabs keep opening for relay, can you just use the one that is open already?"):
+- Before opening anything for Relay, call tabs_context_mcp and look at EVERY tab it lists. If any tab's URL contains rentprogress.my.site.com, use that tab for all Relay work: switch to it and navigate it to https://rentprogress.my.site.com/Relay/s/ (or the job page you need). Do NOT open a new Relay tab when one is already open.
+- Only if no Relay tab is open at all, open ONE new tab for Relay. Keep using that same tab for the whole run; never open a second Relay tab.
+- At the end of the run, if more than one Relay tab is open, close the extra ones and leave exactly one Relay tab open on Home (https://rentprogress.my.site.com/Relay/s/).
+- This rule replaces any older instruction about opening a new tab for Relay. It does not change the AMH watcher tab rule (never touch that tab) or how other portals (Dispatch, AMH, Coupa, Gmail, Google Maps) are opened.
