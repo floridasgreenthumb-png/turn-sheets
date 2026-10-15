@@ -1,0 +1,16 @@
+Please update my "Relay close-out" scheduled task: add the block below to its prompt, right under the OWNER'S RULE 10/15 - ONE RELAY TAB ONLY section (keep everything else the same), and change step 2 to match it. Save it.
+
+OWNER'S CHANGE ORDER RULE 10/15 (in his words: "going forward when a change order is needed, click start, up to 5 times until it actually works (website is sticky and doesn't work correctly) then click pause, a box will pop up asking why, the reason why is a change order is needed. it will ask for a date, add a date 5 days out."):
+When a job needs a change order (the crew's note says it isn't finished / more work or a return visit is needed):
+1. Open the job on Relay (Search tab by address, confirm the Job Number).
+2. Click Start Job. Wait 5 seconds, take a screenshot. If the status is still Scheduled / Start Job is still showing, click Start Job again. Up to 5 tries, until the status is In Progress and the Pause Job button shows. The site is sticky; a button that doesn't react is NOT a refusal.
+3. Click Pause Job (same sticky rule: click, wait 5 s, screenshot, up to 5 tries).
+4. A box pops up asking why: choose / enter the reason "Change Order Needed" (pick Change Order if it's a list).
+5. It asks for a date: enter the date 5 days from today.
+6. Save (sticky rule again). Confirm the status shows Paused.
+7. Don't upload photos, don't click Job Complete and don't invoice. Email me "Change order needed - <address> (<T-number>)" with the crew's note, label the photo email job-closed, log status "paused".
+Only if a tool call literally returns a permission error do you stop and report it, quoting the error.
+
+In step 2 (NOT FINISHED?), replace "set the date one week from today" with "set the date 5 days from today", and follow the rule above.
+
+Right now: 2341 Tioga Dr, Land O' Lakes (T5048526) needs this. The crew said only 1 of 4 zones works after the new timer and they may need to come back. Do it on the next run, unless I already paused it by hand.
