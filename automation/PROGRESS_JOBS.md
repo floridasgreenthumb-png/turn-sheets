@@ -169,3 +169,12 @@ For now the owner says when a job is ready to invoice.
   amount = approved bid, description = WO number, Ship To = job address, today's date; email it to
   floridasgreenthumb@gmail.com. No duplicates.
 - Dispatch update: ready when Dispatch shows the estimate Approved AND the Coupa PO email is in.
+
+# Change orders after invoicing (owner's rule, 10/19)
+When a job's Coupa amount changes after it was invoiced (e.g. a "Revised Purchase Order" email):
+- If Coupa added the change as **lines on the same PO** (revised PO, new total): edit the existing
+  QuickBooks invoice to the new total (add a "Change order" line, item Id 52) and send the updated
+  invoice PDF to the owner. That PDF is the new **lien waiver**: attach it in Coupa, and the Coupa
+  invoice must equal the new PO total.
+- If the change order is a **separate PO** in Coupa: invoice it as normal, as its own invoice.
+Example: 4001 Constantine Loop, PO 00290505 rev 3 (+$193.82). Invoice 40739 was edited to $2,453.31.
