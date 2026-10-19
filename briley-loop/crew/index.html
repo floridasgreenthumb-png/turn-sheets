@@ -2452,7 +2452,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261019-143902";          // stamped in at publish time
+  var CAM_BUILD = "20261019-204830";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2509,7 +2509,7 @@ var rcpDB = null, rcpItems = [], rcpRemote = {}, rcpBusy = false, rcpEl = null, 
 var rcpCat = "job", rcpCard = "amex";   /* the add form's current choices */
 function rcpCatOf(i){ return i && i.cat === "personal" ? "personal" : "job"; }
 /* the food/personal part of one receipt: all of it for "personal", the split amount for "job" */
-function rcpPersOf(i){ var a=Number(i&&i.amount)||0; return rcpCatOf(i)==="personal" ? a : Math.min(a, Math.max(0, Number(i&&i.pers)||0)); }
+function rcpPersOf(i){ var a=Number(i&&i.amount)||0; return rcpCatOf(i)==="personal" ? a : Math.max(0, Math.min(a, Number(i&&i.pers)||0)); }
 
 /* ---- the phone's receipt storage ---- */
 function rcpOpenDB(){
