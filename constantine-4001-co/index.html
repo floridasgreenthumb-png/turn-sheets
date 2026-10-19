@@ -706,6 +706,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rcp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
 .rcp-tag{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(15,118,110,.09);color:var(--teal,#0F766E)}
 .rcp-tag.warn{background:rgba(180,83,9,.12);color:#B45309}
+.rcp-pers{font-size:13px}
+.rcp-hint{font-size:11.5px;color:var(--muted,#6b7472);margin-top:-4px}
 /*RCP:CSS-END*/
 
 /* ---------- confirm ---------- */
@@ -2410,7 +2412,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261019-142711";          // stamped in at publish time
+  var CAM_BUILD = "20261019-143907";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2466,6 +2468,8 @@ function rcpName(){ try{ return localStorage.getItem("fgt.crewName") || ""; }cat
 var rcpDB = null, rcpItems = [], rcpRemote = {}, rcpBusy = false, rcpEl = null, rcpUrls = [], rcpPending = null;
 var rcpCat = "job", rcpCard = "amex";   /* the add form's current choices */
 function rcpCatOf(i){ return i && i.cat === "personal" ? "personal" : "job"; }
+/* the food/personal part of one receipt: all of it for "personal", the split amount for "job" */
+function rcpPersOf(i){ var a=Number(i&&i.amount)||0; return rcpCatOf(i)==="personal" ? a : Math.min(a, Math.max(0, Number(i&&i.pers)||0)); }
 
 /* ---- the phone's receipt storage ---- */
 function rcpOpenDB(){
@@ -2501,8 +2505,9 @@ function rcpThumb(blob){
 function rcpAtSec(x){ return typeof x.at==="number" ? x.at : Math.floor(new Date(x.at).getTime()/1000); }
 function rcpSupplies(cat){
   var seen={}, t=0, want=cat||"job";
-  rcpItems.forEach(function(i){ seen[i.id]=1; if(rcpCatOf(i)===want) t += Number(i.amount)||0; });
-  Object.keys(rcpRemote).forEach(function(k){ if(!seen[k] && rcpCatOf(rcpRemote[k])===want) t += Number(rcpRemote[k].amount)||0; });
+  var part=function(i){ var p=rcpPersOf(i); return want==="personal" ? p : (Number(i.amount)||0)-p; };
+  rcpItems.forEach(function(i){ seen[i.id]=1; t += part(i); });
+  Object.keys(rcpRemote).forEach(function(k){ if(!seen[k]) t += part(rcpRemote[k]); });
   return Math.round(t*100)/100;
 }
 function rcpCount(){ var seen={}; rcpItems.forEach(function(i){seen[i.id]=1;}); var n=rcpItems.length; Object.keys(rcpRemote).forEach(function(k){ if(!seen[k]) n++; }); return n; }
@@ -2537,9 +2542,11 @@ function rcpAddEntry(){
   if(!(amount>0)) return;
   var store=(document.getElementById("rcpStoreIn")||{}).value || "";
   var note=(document.getElementById("rcpNoteIn")||{}).value || "";
+  var pers=rcpCat==="job" ? parseFloat(String((document.getElementById("rcpPersIn")||{}).value||"").replace(/[^0-9.]/g,"")) : 0;
+  pers = (pers>0) ? Math.min(Math.round(pers*100)/100, Math.round(amount*100)/100) : 0;
   var d=new Date(), id=d.getTime().toString(36)+Math.random().toString(36).slice(2,6);
   var it={ id:id, turn:JOB.turn, at:d.toISOString(), amount:Math.round(amount*100)/100,
-    store:String(store).slice(0,60), note:String(note).slice(0,120), cat:rcpCat, card:rcpCard,
+    store:String(store).slice(0,60), note:String(note).slice(0,120), cat:rcpCat, card:rcpCard, pers:pers,
     name:(rcpPending&&rcpPending.name)||"", mime:(rcpPending&&rcpPending.mime)||"",
     thumb:(rcpPending&&rcpPending.thumb)||"", blob:(rcpPending&&rcpPending.file)||null,
     status:"waiting", by:rcpName() };
@@ -2552,7 +2559,7 @@ function rcpPump(){
   if(!next) return; rcpBusy=true;
   (next.blob ? rcpB64(next.blob) : Promise.resolve("")).then(function(data){
     return api({op:"receipt", turn:JOB.turn, house:JOB.short, id:next.id, amount:next.amount,
-      store:next.store, note:next.note, cat:rcpCatOf(next), card:next.card||"amex", by:next.by, at:rcpAtSec(next), data:data, mime:next.mime, name:next.name, thumb:next.thumb});
+      store:next.store, note:next.note, cat:rcpCatOf(next), card:next.card||"amex", pers:Number(next.pers)||0, by:next.by, at:rcpAtSec(next), data:data, mime:next.mime, name:next.name, thumb:next.thumb});
   }).then(function(){ next.status="sent"; return rcpPut(next); })
     .catch(function(){ next.status="failed"; return rcpPut(next); })
     .then(function(){ rcpBusy=false; rcpBtnUpd(); if(rcpItems.some(function(i){return i.status==="waiting";})) setTimeout(rcpPump,300); });
@@ -2643,6 +2650,9 @@ function rcpPanel(){
     + '<div class="rcp-seg-l">What was it?</div><div class="rcp-seg">'
     +   '<button type="button" class="'+(rcpCat==="job"?"on":"")+'" data-rc="cat" data-v="job">Job supplies</button>'
     +   '<button type="button" class="'+(rcpCat==="personal"?"on warn":"")+'" data-rc="cat" data-v="personal">Not for the job<small>food, personal &middot; 100% off your pay</small></button></div>'
+    + (rcpCat==="job" ? '<label class="rcp-l rcp-pers">Any food / personal on this receipt?<span class="rcp-dollar"><span>$</span>'
+      + '<input id="rcpPersIn" type="text" inputmode="decimal" placeholder="0.00" value=""></span></label>'
+      + '<div class="rcp-hint">e.g. a drink or snack at Home Depot &mdash; that part comes 100% off your pay, the rest counts as supplies.</div>' : '')
     + '<div class="rcp-seg-l">Paid with</div><div class="rcp-seg">'
     +   '<button type="button" class="'+(rcpCard==="amex"?"on":"")+'" data-rc="card" data-v="amex">Steve&rsquo;s AmEx</button>'
     +   '<button type="button" class="'+(rcpCard==="other"?"on":"")+'" data-rc="card" data-v="other">Other / cash</button></div>'
@@ -2663,7 +2673,8 @@ function rcpPanel(){
       h+='<div class="rcp-row"><button class="rcp-thumb" data-rc="view" data-id="'+esc(it.id)+'" data-pdf="'+(isPdf?1:0)+'">'+thumb+'</button>'
         + '<div class="rcp-meta"><div class="rcp-amt mono">'+money(Number(it.amount)||0)+'</div>'
         + '<div class="rcp-sub">'+(it.store?esc(it.store):"")+(it.store&&it.note?" · ":"")+(it.note?esc(it.note):"")+'</div>'
-        + '<div class="rcp-tags">'+(rcpCatOf(it)==="personal"?'<span class="rcp-tag warn">Not for the job &middot; 100% yours</span>':'<span class="rcp-tag">Job supplies</span>')
+        + '<div class="rcp-tags">'+(rcpCatOf(it)==="personal"?'<span class="rcp-tag warn">Not for the job &middot; 100% yours</span>'
+            : '<span class="rcp-tag">Job supplies</span>'+(rcpPersOf(it)>0?'<span class="rcp-tag warn">incl. '+money(rcpPersOf(it))+' food/personal &middot; 100% yours</span>':''))
         +   '<span class="rcp-tag">'+(it.card==="other"?"Other / cash":"AmEx")+'</span></div>'
         + (it.by?'<div class="rcp-by">by '+esc(it.by)+(st?" · "+st:"")+'</div>':(st?'<div class="rcp-by">'+st+'</div>':''))+'</div>'
         + (row.kind==="local"?'<button class="rcp-x" data-rc="del" data-id="'+esc(it.id)+'">Delete</button>':'')+'</div>';
@@ -2684,11 +2695,12 @@ function rcpClick(e){
   if(a==="clearpend"){ rcpPending=null; return rcpPanel(); }
   if(a==="save") return rcpAddEntry();
   if(a==="cat" || a==="card"){
-    var keep={amt:(document.getElementById("rcpAmt")||{}).value, st:(document.getElementById("rcpStoreIn")||{}).value, nt:(document.getElementById("rcpNoteIn")||{}).value};
+    var keep={amt:(document.getElementById("rcpAmt")||{}).value, st:(document.getElementById("rcpStoreIn")||{}).value, nt:(document.getElementById("rcpNoteIn")||{}).value, ps:(document.getElementById("rcpPersIn")||{}).value};
     if(a==="cat") rcpCat=b.dataset.v; else rcpCard=b.dataset.v;
     rcpPanel();
     var A=document.getElementById("rcpAmt"), S=document.getElementById("rcpStoreIn"), N=document.getElementById("rcpNoteIn");
     if(A) A.value=keep.amt||""; if(S) S.value=keep.st||""; if(N) N.value=keep.nt||"";
+    var PS=document.getElementById("rcpPersIn"); if(PS) PS.value=keep.ps||"";
     return;
   }
   if(a==="view") return rcpView(b.dataset.id, b.dataset.pdf==="1");
