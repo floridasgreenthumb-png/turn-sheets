@@ -1,0 +1,9 @@
+Please update my "Relay + Dispatch close-out" scheduled task: add the two blocks below to its prompt (keep everything else the same) and save it.
+
+1) Add this right after step 8 (COUPA):
+
+INVOICE COPY (Steve's rule 10/19: "email me a copy of invoice every time an invoice is sent"): every time an invoice is sent - submitted in Coupa (new, or an edited / change-order invoice) - email me a copy. Use Gmail forward on the QuickBooks invoice email for that invoice number and amount (from quickbooks@notification.intuit.com, with the PDF attached) to floridasgreenthumb@gmail.com, with the note: "Invoice <number> sent in Coupa - $<amount> - <address> - PO <PO> - WO#<T- or J-number(s)>". One copy per invoice per amount: keep a copiesSent[] list ("<invoice#>|<amount>") in invoices.json, skip ones already there and add each after sending. These copies are always sent, even when nothing else needs me. In the EMAIL AND PUSH section, "no email for normal successes" does not apply to these copies.
+
+2) Add this at the end of step 7 (QUICKBOOKS INVOICE):
+
+CHANGE ORDER AFTER INVOICING (Steve's rule 10/19): if a "Revised Purchase Order #" email raises the total of a PO that was ALREADY invoiced, check whether Coupa added the change as lines on that same PO or issued it as a separate PO. Same PO -> edit the existing QuickBooks invoice to the new PO total (add a line, item Id 52 "Change order", describing the added PO lines), resend it to floridasgreenthumb@gmail.com - that new PDF is the new lien waiver showing the correct amount - and the Coupa invoice must match the new total with the new lien waiver attached. Separate PO -> invoice it normally as its own invoice.
