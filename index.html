@@ -721,7 +721,7 @@ function loadPayouts(){
   Promise.all([
     Promise.all(done.map(function(s){
       return hubApi("receipts", {turn:s.turn})
-        .then(function(r){ return (r && r.ok) ? (+r.total || 0) : null; })
+        .then(function(r){ return (r && r.ok) ? {job:+r.total || 0, pers:+r.personal || 0} : null; })
         .catch(function(){ return null; });
     })),
     hubApi("helpers").then(function(r){ return (r && r.ok) ? (r.map || {}) : null; }).catch(function(){ return null; })
@@ -731,9 +731,10 @@ function loadPayouts(){
       helpers: res[1] || {}, helpersFailed: res[1] === null, expanded: {},
       open: open,
       rows: done.map(function(s, i){
-        var pct = (typeof s.pct === "number") ? s.pct : 77.5;
-        var net = r2((s.total || 0) - (sup[i] || 0));
-        return {s:s, iso:payIso(s), supplies:sup[i], mgr:Math.round(net * pct) / 100};
+        var pct = (typeof s.pct === "number") ? s.pct : 77.5, R = sup[i] || {job:0, pers:0};
+        var net = r2((s.total || 0) - R.job);
+        /* not-for-the-job receipts (food, personal) come 100% off the manager's pay */
+        return {s:s, iso:payIso(s), supplies:sup[i] ? r2(R.job + R.pers) : null, mgr:r2(Math.round(net * pct) / 100 - R.pers)};
       }).concat((HUB.extraPayouts || []).map(function(m){
         var net = r2((m.total || 0) - (m.supplies || 0));
         return {s:{h1:m.name, co:0, turn:"X-" + m.id, total:m.total}, iso:m.date || "", week:m.week || "",
@@ -865,16 +866,18 @@ function openOwner(){
   }).catch(function(){}).then(function(){
     var done = SCOPES.filter(function(s){ return s.completed; });
     return Promise.all(done.map(function(s){
-      return hubApi("receipts", {turn:s.turn}).then(function(r){ return (r && r.ok) ? (+r.total || 0) : null; }).catch(function(){ return null; });
+      return hubApi("receipts", {turn:s.turn}).then(function(r){ return (r && r.ok) ? {job:+r.total || 0, pers:+r.personal || 0} : null; }).catch(function(){ return null; });
     })).then(function(sup){
-      var calc = function(name, iso, week, total, supplies, pct){
-        var net = r2((total || 0) - (supplies || 0)), mgr = Math.round(net * pct) / 100;
-        return {name:name, iso:iso, week:week, total:total || 0, supplies:supplies, mgr:mgr, own:r2(net - mgr)};
+      /* job supplies come off the top; not-for-the-job receipts come 100% off the manager and back to the owner */
+      var calc = function(name, iso, week, total, R, pct){
+        if(R === null) return {name:name, iso:iso, week:week, total:total || 0, supplies:null, mgr:0, own:0};
+        var net = r2((total || 0) - R.job), share = Math.round(net * pct) / 100;
+        return {name:name, iso:iso, week:week, total:total || 0, supplies:r2(R.job + R.pers), mgr:r2(share - R.pers), own:r2(net - share)};
       };
       paintOwner(done.map(function(s, i){
         return calc(s.h1 + (s.co ? " · CO #" + s.co : ""), payIso(s), "", s.total, sup[i], typeof s.pct === "number" ? s.pct : 77.5);
       }).concat((HUB.extraPayouts || []).map(function(m){
-        return calc(m.name + " (off-portal)", m.date || "", m.week || "", m.total, m.supplies || 0, m.pct || 77.5);
+        return calc(m.name + " (off-portal)", m.date || "", m.week || "", m.total, {job:m.supplies || 0, pers:0}, m.pct || 77.5);
       })));
     });
   });
