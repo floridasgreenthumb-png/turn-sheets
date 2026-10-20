@@ -8,8 +8,8 @@
 #fgtGate button{width:100%;font-size:16px;font-weight:700;padding:11px;border-radius:10px;border:0;cursor:pointer;margin-top:4px}
 #fgtGate .go{background:#0F766E;color:#fff}#fgtGate .crew{background:#eef4f2;color:#0F766E}#fgtGate .err{color:#b42318;font-size:13px;min-height:17px;margin-bottom:6px}</style>
 <script>(function(){
-  var H=["a76243b709a3f651eb5f50f3c610d3548d6a2e2bc6ff8d63efc41e708881f74e", "222342a88860eeb2b9b041cec82f257663dd06721df9a27d211e9c1f79065b82"];
-  var ok=false; try{ ok = sessionStorage.getItem("fgt.in")==="manager"; }catch(e){}
+  var H=["a76243b709a3f651eb5f50f3c610d3548d6a2e2bc6ff8d63efc41e708881f74e", "222342a88860eeb2b9b041cec82f257663dd06721df9a27d211e9c1f79065b82"], SV="202610192130";
+  var ok=false; try{ ok = sessionStorage.getItem("fgt.in")==="manager" && sessionStorage.getItem("fgt.sv")===SV; }catch(e){}
   if(ok) return;
   document.documentElement.classList.add("fgt-locked");
   function crewUrl(){ var p=location.pathname; if(p.slice(-1)!=="/") p=p.replace(/[^\/]*$/,""); return p+"crew/"+location.search; }
@@ -22,7 +22,7 @@
     document.body.appendChild(g);
     var inp=document.getElementById("fgtCode");
     function tryIt(){ sha(String(inp.value||"").trim().toLowerCase()).then(function(h){
-      if(H.indexOf(h)>=0){ try{ sessionStorage.setItem("fgt.in","manager"); }catch(e){} g.remove(); document.documentElement.classList.remove("fgt-locked"); }
+      if(H.indexOf(h)>=0){ try{ sessionStorage.setItem("fgt.in","manager"); sessionStorage.setItem("fgt.sv",SV); }catch(e){} g.remove(); document.documentElement.classList.remove("fgt-locked"); }
       else { document.getElementById("fgtErr").textContent="That code isn't a manager code."; inp.select(); }
     }); }
     document.getElementById("fgtGo").onclick=tryIt;
