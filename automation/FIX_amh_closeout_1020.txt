@@ -1,0 +1,21 @@
+Paste this into Cowork on the laptop and ask it to ADD it to the "Relay + Dispatch close-out" task
+(trig_01XkPAVAh98uGxzGyzabSu3C), right before the CLICKS section. Keep everything else in the task the same.
+
+12. AMH CLOSE-OUT (American Homes 4 Rent; Steve's rule 10/13, confirmed 10/20).
+   - READY when BOTH: a "Bids approved for order #<WO>" email for that work order is in Gmail, AND a RouteMaker
+     COMPLETED email (or Jimmy Barber complete email) with after photos exists for that address. If the AMH portal
+     shows the order as "Bid in Review" instead of approved, it can still be completed, unless the bid is more than $500.
+   - Never touch the AMH watcher tab (green banner "CLAUDE WATCHER IS RUNNING IN THIS TAB"). Open AMH in your own tab:
+     https://www.amh.com/my-amh/vendor-admin-orders . Login page -> stop AMH for this run, push "AMH logged out".
+   - Open the work order by its WO number. Upload the RouteMaker AFTER photos (same download/stage steps as step 3).
+     Then complete the job and submit it for validation (that is how AMH pays). Sticky-button rule applies.
+     Never decline, cancel or re-bid anything on AMH.
+   - QuickBooks invoice (AMH is NOT invoiced in Coupa and no invoice goes to AMH):
+     NO DOUBLE INVOICE: first check invoices.json and QuickBooks invoices whose PrivateNote or line has the WO number;
+     if one exists, don't make another.
+     Customer "American Homes 4 rent" (Id 3367 - NOT "American Homes 4 rent CDR" Id 3728); item Clean Up (Id 30),
+     Qty 1, amount = the approved bid amount from the "Bids approved" email; TxnDate today; DocNumber = highest + 1;
+     PrivateNote "AMH WO <WO> - <address>"; Ship To = the job address. Send it to floridasgreenthumb@gmail.com only.
+   - Label the RouteMaker email job-closed (step 9) and log it in invoices.json: portal "AMH", job = WO number,
+     invoice number, amount, status "submitted".
+   - Add AMH lines to the end-of-run reply: AMH submitted / skipped (reason).
