@@ -9,11 +9,15 @@
 #fgtGate .go{background:#0F766E;color:#fff}#fgtGate .crew{background:#eef4f2;color:#0F766E}#fgtGate .err{color:#b42318;font-size:13px;min-height:17px;margin-bottom:6px}</style>
 <script>(function(){
   var H=["a76243b709a3f651eb5f50f3c610d3548d6a2e2bc6ff8d63efc41e708881f74e", "222342a88860eeb2b9b041cec82f257663dd06721df9a27d211e9c1f79065b82", "4ca6f6d5a544bf57c323657ad33aae1a019c775518cf4414beedb86962aea7c1"], SV="202610192134", BU="https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", BK="tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0";
-  function fgtLog(ev,x){try{var d=localStorage.getItem("fgt.dev");if(!d){d=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("fgt.dev",d);}
+  function fgtGeo(){try{var c=sessionStorage.getItem("fgt.geo");if(c)return Promise.resolve(c);}catch(e){}
+var t=new Promise(function(r){setTimeout(function(){r("");},3500);});
+var g=fetch("https://get.geojs.io/v1/ip/geo.json").then(function(r){return r.json();}).then(function(j){
+var s=[j.city,j.region,j.country_code].filter(Boolean).join(", ")+(j.ip?" \u00b7 IP "+j.ip:"");try{sessionStorage.setItem("fgt.geo",s);}catch(e){}return s;}).catch(function(){return "";});
+return Promise.race([g,t]);}function fgtLog(ev,x){try{var d=localStorage.getItem("fgt.dev");if(!d){d=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("fgt.dev",d);}
 var o={op:"seen",k:BK,ev:ev,dev:d,ua:String(navigator.userAgent||"").slice(0,160),page:location.pathname+location.search,
 role:sessionStorage.getItem("fgt.in")||"",pid:sessionStorage.getItem("fgt.pid")||"",pn:sessionStorage.getItem("fgt.pn")||""};
 for(var k in (x||{}))o[k]=x[k];
-fetch(BU,{method:"POST",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)}).catch(function(){});}catch(e){}}
+fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)}).catch(function(){});});}catch(e){}}
   var ok=false; try{ ok = sessionStorage.getItem("fgt.in")==="manager" && sessionStorage.getItem("fgt.sv")===SV; }catch(e){}
   if(ok){ fgtLog("open-manager-page"); return; }
   document.documentElement.classList.add("fgt-locked");

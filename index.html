@@ -297,13 +297,20 @@ function personName(id){ var p = PEOPLE.filter(function(x){ return x.id === id; 
 /* two codes: crew (opens the no-price pages) and manager (opens the priced pages) */
 var ROLE = "crew", PERSON = "", PERSON_NAME = "", OWNER = false;   /* OWNER = logged in with the owner code (manager powers + owner report) */   /* PERSON = logged-in crew person's id ("" = generic crew) */
 /* login log (Steve 2026-10-19: "find out if someone had someone's log in") - which code, which device */
+function fgtGeo(){try{var c=sessionStorage.getItem("fgt.geo");if(c)return Promise.resolve(c);}catch(e){}
+var t=new Promise(function(r){setTimeout(function(){r("");},3500);});
+var g=fetch("https://get.geojs.io/v1/ip/geo.json").then(function(r){return r.json();}).then(function(j){
+var s=[j.city,j.region,j.country_code].filter(Boolean).join(", ")+(j.ip?" \u00b7 IP "+j.ip:"");try{sessionStorage.setItem("fgt.geo",s);}catch(e){}return s;}).catch(function(){return "";});
+return Promise.race([g,t]);}
 function loginLog(ev, role){
   try{
     var d = localStorage.getItem("fgt.dev"); if(!d){ d = Math.random().toString(36).slice(2,10) + Date.now().toString(36); localStorage.setItem("fgt.dev", d); }
     if(!HUB.backendUrl) return;
-    fetch(HUB.backendUrl, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({op:"seen", k:HUB.backendKey, ev:ev, dev:d, ua:String(navigator.userAgent||"").slice(0,160),
-        page:"hub", role: OWNER ? "owner" : role, pid:PERSON, pn:PERSON_NAME})}).catch(function(){});
+    var o = {op:"seen", k:HUB.backendKey, ev:ev, dev:d, ua:String(navigator.userAgent||"").slice(0,160),
+             page:"hub", role: OWNER ? "owner" : role, pid:PERSON, pn:PERSON_NAME};
+    fgtGeo().then(function(loc){ o.loc = loc;
+      fetch(HUB.backendUrl, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(o)}).catch(function(){});
+    });
   }catch(e){}
 }
 function unlock(role, personId, personName, restored){
