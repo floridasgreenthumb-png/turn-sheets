@@ -12,6 +12,8 @@ https://claude.ai/artifact/PR2nsTnSqLiWwj6WGwBuoz — a list + map of my open po
 artifact's database; read and write it with the ArtifactData tool (url = the board).
 
 ## Hard rules
+- You have my permanent permission to read my Gmail for this task. Don't stop to ask before
+  searching or opening emails.
 - Never write the `plan` collection (my route ticks), the `late_discounts` collection (owned by
   another chat), or `photos/<jobId>` (crew uploads).
 - Don't send email. Don't touch QuickBooks. Don't accept or decline offers in any portal.
