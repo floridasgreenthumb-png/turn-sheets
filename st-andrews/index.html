@@ -1,6 +1,46 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><!--FGT:MGRGATE--><style id="fgtGateCss">html.fgt-locked body>*:not(#fgtGate){display:none!important}
+#fgtGate{position:fixed;inset:0;z-index:2147483647;background:#0f2a24;display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#fgtGate .b{background:#fff;border-radius:16px;max-width:360px;width:100%;padding:22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.35);text-align:center}
+#fgtGate h2{margin:0 0 6px;font-size:19px;color:#0F766E}#fgtGate p{margin:0 0 14px;color:#4b5552;font-size:14px;line-height:1.4}
+#fgtGate input{width:100%;box-sizing:border-box;font-size:17px;padding:11px 12px;border:1.5px solid #cfd8d5;border-radius:10px;margin-bottom:10px;text-align:center}
+#fgtGate button{width:100%;font-size:16px;font-weight:700;padding:11px;border-radius:10px;border:0;cursor:pointer;margin-top:4px}
+#fgtGate .go{background:#0F766E;color:#fff}#fgtGate .crew{background:#eef4f2;color:#0F766E}#fgtGate .err{color:#b42318;font-size:13px;min-height:17px;margin-bottom:6px}</style>
+<script>(function(){
+  var H=["a76243b709a3f651eb5f50f3c610d3548d6a2e2bc6ff8d63efc41e708881f74e", "222342a88860eeb2b9b041cec82f257663dd06721df9a27d211e9c1f79065b82", "4ca6f6d5a544bf57c323657ad33aae1a019c775518cf4414beedb86962aea7c1"], SV="202610192134", BU="https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", BK="tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0";
+  function fgtGeo(){try{var c=sessionStorage.getItem("fgt.geo");if(c)return Promise.resolve(c);}catch(e){}
+var t=new Promise(function(r){setTimeout(function(){r("");},3500);});
+var g=fetch("https://get.geojs.io/v1/ip/geo.json").then(function(r){return r.json();}).then(function(j){
+var s=[j.city,j.region,j.country_code].filter(Boolean).join(", ")+(j.ip?" \u00b7 IP "+j.ip:"");try{sessionStorage.setItem("fgt.geo",s);}catch(e){}return s;}).catch(function(){return "";});
+return Promise.race([g,t]);}function fgtLog(ev,x){try{var d=localStorage.getItem("fgt.dev");if(!d){d=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("fgt.dev",d);}
+var o={op:"seen",k:BK,ev:ev,dev:d,ua:String(navigator.userAgent||"").slice(0,160),page:location.pathname+location.search,
+role:sessionStorage.getItem("fgt.in")||"",pid:sessionStorage.getItem("fgt.pid")||"",pn:sessionStorage.getItem("fgt.pn")||""};
+for(var k in (x||{}))o[k]=x[k];
+fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)}).catch(function(){});});}catch(e){}}
+  var ok=false; try{ ok = sessionStorage.getItem("fgt.in")==="manager" && sessionStorage.getItem("fgt.sv")===SV; }catch(e){}
+  if(ok){ fgtLog("open-manager-page"); return; }
+  document.documentElement.classList.add("fgt-locked");
+  function crewUrl(){ var p=location.pathname; if(p.slice(-1)!=="/") p=p.replace(/[^\/]*$/,""); return p+"crew/"+location.search; }
+  function sha(s){ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2);}).join(""); }); }
+  function show(){
+    var g=document.createElement("div"); g.id="fgtGate";
+    g.innerHTML='<div class="b"><h2>Manager page</h2><p>This copy shows prices. Enter the manager code, or open the crew version.</p>'
+      +'<input id="fgtCode" type="password" autocomplete="off" placeholder="Manager code"><div class="err" id="fgtErr"></div>'
+      +'<button class="go" id="fgtGo">Open</button><button class="crew" id="fgtCrew">I\'m crew &mdash; open the crew version</button></div>';
+    document.body.appendChild(g);
+    var inp=document.getElementById("fgtCode");
+    function tryIt(){ sha(String(inp.value||"").trim().toLowerCase()).then(function(h){
+      if(H.indexOf(h)>=0){ try{ sessionStorage.setItem("fgt.in","manager"); sessionStorage.setItem("fgt.sv",SV); }catch(e){} fgtLog("code-on-manager-page"); g.remove(); document.documentElement.classList.remove("fgt-locked"); }
+      else { document.getElementById("fgtErr").textContent="That code isn't a manager code."; inp.select(); }
+    }); }
+    document.getElementById("fgtGo").onclick=tryIt;
+    inp.addEventListener("keydown",function(e){ if(e.key==="Enter") tryIt(); });
+    document.getElementById("fgtCrew").onclick=function(){ location.replace(crewUrl()); };
+    setTimeout(function(){ inp.focus(); },50);
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",show); else show();
+})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>

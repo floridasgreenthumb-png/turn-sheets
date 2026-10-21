@@ -1,6 +1,23 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><!--FGT:CREWGATE--><script>(function(){
+  var SV="202610192134", BU="https://script.google.com/macros/s/AKfycbzh70eY91CL5hnjsNk9ha8RZe4b3WGWI9KJWMINnk9pbHzOmMfruAlf4zoW8FU_m7O3Hw/exec", BK="tp_aDqhdJoELbiXbjS4_65yjwYzEeWAeHB0";
+  function fgtGeo(){try{var c=sessionStorage.getItem("fgt.geo");if(c)return Promise.resolve(c);}catch(e){}
+var t=new Promise(function(r){setTimeout(function(){r("");},3500);});
+var g=fetch("https://get.geojs.io/v1/ip/geo.json").then(function(r){return r.json();}).then(function(j){
+var s=[j.city,j.region,j.country_code].filter(Boolean).join(", ")+(j.ip?" \u00b7 IP "+j.ip:"");try{sessionStorage.setItem("fgt.geo",s);}catch(e){}return s;}).catch(function(){return "";});
+return Promise.race([g,t]);}function fgtLog(ev,x){try{var d=localStorage.getItem("fgt.dev");if(!d){d=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("fgt.dev",d);}
+var o={op:"seen",k:BK,ev:ev,dev:d,ua:String(navigator.userAgent||"").slice(0,160),page:location.pathname+location.search,
+role:sessionStorage.getItem("fgt.in")||"",pid:sessionStorage.getItem("fgt.pid")||"",pn:sessionStorage.getItem("fgt.pn")||""};
+for(var k in (x||{}))o[k]=x[k];
+fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)}).catch(function(){});});}catch(e){}}
+  if(/[?&](view|ro)=1/.test(location.search)){ fgtLog("open-view-link"); return; }
+  var r="", sv=""; try{ r=sessionStorage.getItem("fgt.in")||""; sv=sessionStorage.getItem("fgt.sv")||""; }catch(e){}
+  if((r==="crew"||r==="manager"||r==="viewer") && sv===SV){ fgtLog("open-crew-page"); return; }
+  fgtLog("blocked-crew-page");
+  document.documentElement.style.visibility="hidden";
+  location.replace("/?login=1");
+})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
