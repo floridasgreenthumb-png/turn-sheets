@@ -781,7 +781,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="head">
       <div class="addr">
         <a class="addr-link" id="mapsLink" target="_blank" rel="noopener" aria-label="Open in Google Maps and navigate"><h1>7907 Outerbridge St</h1><span class="addr-go"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>Navigate</span></a>
-        <div class="sub">Wesley Chapel, FL 33545 &middot; <b>Turn 90000790</b> &middot; 4 bed / 3.5 bath &middot; 2,462 sq ft &middot; Lockbox <b class="mono">2746</b></div>
+        <div class="sub">Wesley Chapel, FL 33545 &middot; <b>Turn 90000790</b> &middot; 4 bed / 3.5 bath &middot; 2,462 sq ft &middot; Lockbox <b class="mono">2746</b> &middot; no gate code</div>
         <details class="pcon" id="pContacts" hidden><summary>Progress contacts</summary><div class="pcon-list" id="pContactsList"></div></details>
         <div class="mode connecting" id="mode">Connecting…</div>
         <button class="whoami" id="whoami" type="button" hidden></button>
@@ -914,7 +914,8 @@ var JOB = {
   cityLine: "Wesley Chapel FL 33545",
   turn: "90000790",
   scopeTotal: 0,
-  sendTo: "floridasgreenthumb@gmail.com"
+  sendTo: "floridasgreenthumb@gmail.com",
+  contacts: [["MRS / Property Manager", "Ronald Arcaro, Jr.", "480-904-7883", ""], ["MRC / Construction PC", "Mia Thomas", "321-479-5438", ""], ["MRM / Senior PM", "Grant Strength", "727-276-7796", ""]]
 };
 /* Progress contacts: JOB.contacts = [[role, name, phone, email], ...] from the spec */
 (function(){
@@ -2506,7 +2507,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261025-152957";          // stamped in at publish time
+  var CAM_BUILD = "20261025-160018";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
