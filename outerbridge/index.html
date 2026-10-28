@@ -816,7 +816,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
             stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4"
             transform="rotate(-90 23 23)"></circle>
         </svg>
-        <div class="rt"><div class="n mono" id="ringN">0/36</div><div class="l">done</div></div>
+        <div class="rt"><div class="n mono" id="ringN">0/38</div><div class="l">done</div></div>
       </div>
     </div>
 
@@ -846,7 +846,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div class="bar">
   <div class="bar-in">
-    <div class="lbl" id="barN">0 of 36</div>
+    <div class="lbl" id="barN">0 of 38</div>
     <div class="pb"><i id="barI" style="width:0%"></i></div>
     <div class="lbl" id="barPct">0%</div>
     <button class="up" id="toTop" aria-label="Back to top">
@@ -862,7 +862,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17zM8 7h4M8 10h4"/></svg>
     Receipts &amp; payout
   </button>
-  <div class="legal">Scope total $2,175.50 &middot; Progress Tampa &middot; WO 5065775 &middot; landscaping, irrigation &amp; pressure wash removed &middot; 36 tasks</div>
+  <div class="legal">Scope total $2,249.45 &middot; Progress Tampa &middot; WO 5065775 &middot; landscaping, irrigation &amp; pressure wash removed &middot; 38 tasks</div>
 </div>
 
 <script>
@@ -926,7 +926,9 @@ var T = [
  [33, "hvac", "Replace HVAC air filter", ["Stairs-01"], "Filter needed.", 1, 7.92, 33],
  [34, "paint", "Scrub walls (save on paint)", [], "Have painters scrub the walls to save on cost.", 1, 50.0, 34],
  [35, "paint", "Touch up ceilings", ["Bathroom - Master-01", "Kitchen-01", "Bedroom-02"], "Touch-up needed on the ceilings.", 1, 50.0, 35],
- [36, "paint", "Interior touch-up paint, Level 1 (whole house)", [], "Touch up walls, doors and trim. Remove all nails, screws, mollies etc. and fill holes; minor drywall patch prep. Water-based texture where needed. Wash walls with mild detergent to save the finish where possible; magic eraser on woodwork. Corner to corner.", 1, 350.0, 36]
+ [36, "paint", "Interior touch-up paint, Level 1 (whole house)", [], "Touch up walls, doors and trim. Remove all nails, screws, mollies etc. and fill holes; minor drywall patch prep. Water-based texture where needed. Wash walls with mild detergent to save the finish where possible; magic eraser on woodwork. Corner to corner.", 1, 350.0, 36],
+ [37, "elec", "Replace electrical box (added 10/28)", ["Family Room-01"], "Cut the drywall and replace the electrical box. Repair the drywall and paint.", 1, 50.0, 0],
+ [38, "plumb", "Replace sink pop-up drain (added 10/28)", ["Bathroom - Master-01"], "Replace the sink pop-up kit in the master bath.", 1, 23.95, 0]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -936,7 +938,7 @@ var JOB = {
   zip: "33545",
   cityLine: "Wesley Chapel FL 33545",
   turn: "90000790",
-  scopeTotal: 2175.5,
+  scopeTotal: 2249.45,
   sendTo: "floridasgreenthumb@gmail.com",
   contacts: [["MRS / Property Manager", "Ronald Arcaro, Jr.", "480-904-7883", ""], ["MRC / Construction PC", "Mia Thomas", "321-479-5438", ""], ["MRM / Senior PM", "Grant Strength", "727-276-7796", ""]]
 };
@@ -985,11 +987,12 @@ var MATS = [
  ["m12", "hd", "Frameless mirror, small", 1, "frameless mirror", [25], "Measure first."],
  ["m13", "hd", "Washing machine valves (hot + cold)", 2, "washing machine valve", [26], ""],
  ["m14", "hd", "Hose bibs / outdoor spigots", 2, "outdoor faucet hose bib", [27, 28], "Shut the water off first."],
- ["m15", "hd", "Sink pop-up drain", 1, "bathroom sink pop up drain", [29], ""],
+ ["m15", "hd", "Sink pop-up drains", 2, "bathroom sink pop up drain", [29, 38], ""],
  ["m16", "hd", "Shower heads (standard)", 2, "shower head", [30, 31], ""],
  ["m17", "hd", "Stucco patch", 1, "stucco patch", [32], ""],
  ["m18", "hd", "HVAC air filter", 1, "air filter", [33], "Check the size."],
- ["m19", "hd", "Touch-up paint (match existing) + patch supplies", 1, "interior paint", [34, 35, 36], ""]
+ ["m19", "hd", "Touch-up paint (match existing) + patch supplies", 1, "interior paint", [34, 35, 36], ""],
+ ["m20", "hd", "Old-work electrical box + drywall patch", 1, "old work electrical box", [37], "Kill the breaker first."]
 ].map(function(r){return {id:r[0],store:r[1],name:r[2],qty:r[3],q:r[4],tasks:r[5],caution:r[6]};});
 
 /* a material is "settled" once every task that needs it is checked off */
@@ -2530,7 +2533,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261025-160017";          // stamped in at publish time
+  var CAM_BUILD = "20261028-210911";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
