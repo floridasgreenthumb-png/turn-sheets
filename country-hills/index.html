@@ -804,7 +804,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="head">
       <div class="addr">
         <a class="addr-link" id="mapsLink" target="_blank" rel="noopener" aria-label="Open in Google Maps and navigate"><h1>4409 Country Hills Blvd</h1><span class="addr-go"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>Navigate</span></a>
-        <div class="sub">Plant City, FL 33563 &middot; American Homes 4 Rent<span class="mgronly"> &middot; <b>4 PRICES PENDING &mdash; AMH PO not in yet</b> (paint prices are from AMH's report)</span></div>
+        <div class="sub">Plant City, FL 33563 &middot; <b>WO FL20401</b> &middot; PO 1428050 &middot; American Homes 4 Rent</div>
         <details class="pcon" id="pContacts" hidden><summary>Progress contacts</summary><div class="pcon-list" id="pContactsList"></div></details>
         <div class="mode connecting" id="mode">Connecting…</div>
         <button class="whoami" id="whoami" type="button" hidden></button>
@@ -862,7 +862,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17zM8 7h4M8 10h4"/></svg>
     Receipts &amp; payout
   </button>
-  <div class="legal">Scope total $411.88 &middot; 4 prices pending the AMH PO &middot; American Homes 4 Rent &middot; contact Leo Hernandez (lcarpiohernandez@amh.com) &middot; outside work removed &middot; 7 tasks</div>
+  <div class="legal">Scope total $556.88 &middot; American Homes 4 Rent &middot; PO 1428050 &middot; contact Leo Hernandez (lcarpiohernandez@amh.com) &middot; outside work removed &middot; 7 tasks</div>
 </div>
 
 <script>
@@ -891,13 +891,13 @@ var ROOM_ORDER = ["Whole House","Living Room","Kitchen","Dining Room","Entrance"
 
 /* id, trade, name, rooms, note, qty, cost, photo# */
 var T = [
- [1, "paint", "Sand & repair old drywall patches, living room", ["Living room"], "Sand down and redo the previously repaired holes on the wall, and texture to match where needed before painting. SUGGESTION: do this first, before the wall wash and the full repaint, so the patches get primed and painted with everything else. Spot-prime each patch so it doesn't flash through the Alabaster.", 1, 0.0, 1],
+ [1, "paint", "Sand & repair old drywall patches, living room", ["Living room"], "Sand down and redo the previously repaired holes on the wall, and texture to match where needed before painting. SUGGESTION: do this first, before the wall wash and the full repaint, so the patches get primed and painted with everything else. Spot-prime each patch so it doesn't flash through the Alabaster.", 1, 25.0, 1],
  [2, "paint", "Wall wash, whole home", [], "Wash the walls through the whole house before painting (AMH line: Wall Wash).", 1, 25.0, 2],
  [3, "paint", "Paint full home wall-to-wall (SW Alabaster)", [], "Whole-home interior repaint, wall to wall, Sherwin-Williams Alabaster.", 1, 236.88, 3],
  [4, "paint", "Paint trim, baseboards & doors (SW Alabaster)", [], "Paint all interior doors, trim and baseboards to go with the wall-to-wall repaint.", 1, 150.0, 4],
- [5, "paint", "Paint front entry door, outside face, to match", ["Front entryway"], "The outside of the front door is dirty and discolored. Paint the exterior side of the door to match the current color. SUGGESTION: clean and scuff-sand it first, bring the color in from the door (or a chip off the edge) to get it matched, and tape off the kick plate, knob and deadbolt. There are old screw anchors in the stucco beside the door frame; that's not on the PO, so just tell Steve about it.", 1, 0.0, 5],
- [6, "env", "Replace mailbox post & anchor it", ["Front exterior"], "The mailbox post isn't secured in the ground. Replace the post and anchor it. SUGGESTION: set the new 4x4 post about 2 ft deep in a bag of fast-setting concrete, reuse the mailbox if it's still good, keep the house numbers on it, and set the bottom of the box at 41 to 45 in off the road.", 1, 0.0, 6],
- [7, "window", "Install missing window screen, bathroom 1", ["Bathroom one"], "The bathroom window is missing its screen. Install a new screen. SUGGESTION: measure the window opening (width x height, and the frame depth) before buying, and match the frame color of the other screens.", 1, 0.0, 7]
+ [5, "paint", "Paint front entry door, outside face, to match", ["Front entryway"], "The outside of the front door is dirty and discolored. Paint the exterior side of the door to match the current color. SUGGESTION: clean and scuff-sand it first, bring the color in from the door (or a chip off the edge) to get it matched, and tape off the kick plate, knob and deadbolt. There are old screw anchors in the stucco beside the door frame; that's not on the PO, so just tell Steve about it.", 1, 35.0, 5],
+ [6, "env", "Replace mailbox post & anchor it", ["Front exterior"], "The mailbox post isn't secured in the ground. Replace the post and anchor it. SUGGESTION: set the new 4x4 post about 2 ft deep in a bag of fast-setting concrete, reuse the mailbox if it's still good, keep the house numbers on it, and set the bottom of the box at 41 to 45 in off the road.", 1, 50.0, 6],
+ [7, "window", "Install missing window screen, bathroom 1", ["Bathroom one"], "The bathroom window is missing its screen. Install a new screen. SUGGESTION: measure the window opening (width x height, and the frame depth) before buying, and match the frame color of the other screens.", 1, 35.0, 7]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -907,7 +907,7 @@ var JOB = {
   zip: "33563",
   cityLine: "Plant City FL 33563",
   turn: "COUNTRYHILLS4409",
-  scopeTotal: 411.88,
+  scopeTotal: 556.88,
   sendTo: "floridasgreenthumb@gmail.com",
   contacts: [["AMH contact", "Leo Hernandez", "", "lcarpiohernandez@amh.com"]]
 };
@@ -2489,7 +2489,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261109-210329";          // stamped in at publish time
+  var CAM_BUILD = "20261109-230716";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
