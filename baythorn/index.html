@@ -59,7 +59,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(22,26,25,.06),0 6px 18px -8px rgba(22,26,25,.18);
   --t-paint:#7C6BB5; --t-window:#2F7FB5; --t-door:#B5722F; --t-floor:#8A6A3B;
   --t-elec:#C2A014; --t-land:#3F8F4E; --t-cab:#9A5A7A; --t-common:#5A6B78;
-  --t-appl:#2F8E8A; --t-plumb:#3A63B5; --t-hvac:#7A8A2F; --t-env:#7A6A55;
+  --t-appl:#2F8E8A; --t-plumb:#3A63B5; --t-hvac:#7A8A2F; --t-env:#7A6A55; --t-tile:#4E7F8C;
   --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -70,7 +70,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px -8px rgba(0,0,0,.6);
   --t-paint:#A798D6; --t-window:#6FB2DE; --t-door:#DBA06A; --t-floor:#C2A173;
   --t-elec:#E0C64A; --t-land:#6FC17F; --t-cab:#C88CAB; --t-common:#93A5B2;
-  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94;
+  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94; --t-tile:#86BFCC;
 }}
 :root[data-theme="dark"]{
   --paper:#121615; --surface:#1B211F; --surface-2:#222927;
@@ -80,7 +80,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px -8px rgba(0,0,0,.6);
   --t-paint:#A798D6; --t-window:#6FB2DE; --t-door:#DBA06A; --t-floor:#C2A173;
   --t-elec:#E0C64A; --t-land:#6FC17F; --t-cab:#C88CAB; --t-common:#93A5B2;
-  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94;
+  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94; --t-tile:#86BFCC;
 }
 *{box-sizing:border-box}
 body{
@@ -872,7 +872,8 @@ var TRADES = {
   door:["Doors & Hardware","--t-door"], floor:["Flooring","--t-floor"],
   elec:["Electrical & Lighting","--t-elec"], land:["Landscaping & Fencing","--t-land"],
   cab:["Cabinets","--t-cab"], common:["Common Packages","--t-common"], env:["Building Envelope","--t-env"],
-  appl:["Appliances","--t-appl"], plumb:["Plumbing","--t-plumb"], hvac:["HVAC","--t-hvac"]
+  appl:["Appliances","--t-appl"], plumb:["Plumbing","--t-plumb"], hvac:["HVAC","--t-hvac"],
+  tile:["Tile & Showers","--t-tile"]
 };
 /* generic room naming: keyed on the InsideMaps code with its trailing -0N stripped.
    roomsOf() adds the unit number for a 2nd+ room ("Bedroom-03" -> "Bedroom 3"). */
@@ -2478,7 +2479,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261108-133334";          // stamped in at publish time
+  var CAM_BUILD = "20261112-191020";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
