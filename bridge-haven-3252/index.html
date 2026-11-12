@@ -59,7 +59,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(22,26,25,.06),0 6px 18px -8px rgba(22,26,25,.18);
   --t-paint:#7C6BB5; --t-window:#2F7FB5; --t-door:#B5722F; --t-floor:#8A6A3B;
   --t-elec:#C2A014; --t-land:#3F8F4E; --t-cab:#9A5A7A; --t-common:#5A6B78;
-  --t-appl:#2F8E8A; --t-plumb:#3A63B5; --t-hvac:#7A8A2F; --t-env:#7A6A55;
+  --t-appl:#2F8E8A; --t-plumb:#3A63B5; --t-hvac:#7A8A2F; --t-env:#7A6A55; --t-tile:#4E7F8C;
   --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -70,7 +70,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px -8px rgba(0,0,0,.6);
   --t-paint:#A798D6; --t-window:#6FB2DE; --t-door:#DBA06A; --t-floor:#C2A173;
   --t-elec:#E0C64A; --t-land:#6FC17F; --t-cab:#C88CAB; --t-common:#93A5B2;
-  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94;
+  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94; --t-tile:#86BFCC;
 }}
 :root[data-theme="dark"]{
   --paper:#121615; --surface:#1B211F; --surface-2:#222927;
@@ -80,7 +80,7 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px -8px rgba(0,0,0,.6);
   --t-paint:#A798D6; --t-window:#6FB2DE; --t-door:#DBA06A; --t-floor:#C2A173;
   --t-elec:#E0C64A; --t-land:#6FC17F; --t-cab:#C88CAB; --t-common:#93A5B2;
-  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94;
+  --t-appl:#5FC0BB; --t-plumb:#7C9BE0; --t-hvac:#B2C05F; --t-env:#BFAE94; --t-tile:#86BFCC;
 }
 *{box-sizing:border-box}
 body{
@@ -684,6 +684,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 }
 .complete-scope svg{width:19px;height:19px;flex:0 0 auto}
 .complete-scope:active{transform:scale(.99)}
+
+/* Complete button states (2026-11-12) */
+.complete-scope.is-busy{opacity:.85;cursor:progress}
+.complete-scope.is-done{background:var(--done-soft);color:var(--done-ink);box-shadow:none;cursor:default}
+.cs-spin{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.45);border-top-color:#fff;
+  display:inline-block;animation:csSpin .8s linear infinite;flex:0 0 auto}
+@keyframes csSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.cs-spin{animation:none}}
 /*CAM:CSS-END*/
 
 /*RCP:CSS-BEGIN*/
@@ -872,7 +880,8 @@ var TRADES = {
   door:["Doors & Hardware","--t-door"], floor:["Flooring","--t-floor"],
   elec:["Electrical & Lighting","--t-elec"], land:["Landscaping & Fencing","--t-land"],
   cab:["Cabinets","--t-cab"], common:["Common Packages","--t-common"], env:["Building Envelope","--t-env"],
-  appl:["Appliances","--t-appl"], plumb:["Plumbing","--t-plumb"], hvac:["HVAC","--t-hvac"]
+  appl:["Appliances","--t-appl"], plumb:["Plumbing","--t-plumb"], hvac:["HVAC","--t-hvac"],
+  tile:["Tile & Showers","--t-tile"]
 };
 /* generic room naming: keyed on the InsideMaps code with its trailing -0N stripped.
    roomsOf() adds the unit number for a 2nd+ room ("Bedroom-03" -> "Bedroom 3"). */
@@ -2383,77 +2392,162 @@ function onScopeComplete(pct){
   document.getElementById("camDoneSend").addEventListener("click", function(){ camShare(); });
 }
 
-/* ---- Complete Scope: confirm + sign your name, then email every photo to Steve ---- */
+/* ---- Complete Scope: confirm + sign your name, then email every photo to Steve ----
+   2026-11-12 fix (Jimmy: "hard to hit, sticky"):
+   - the button shows what's happening: "Uploading photos...", "Completing...", then
+     "Completed <date>" and locks; a second tap just says it's already done
+     (the server stamps completedAt on the FIRST press; read back via op "summary")
+   - waits for this phone's queued photo uploads before asking the server to email
+   - any phone can complete (photos taken on another phone are already in Drive)
+   - name comes from the login; the 2-letter rule only applies when not logged in */
+var camDone = null, camCompleting = false, camCsHtml = null, camCsNote = "";
+function camCsBtn(){ return document.getElementById("completeScope"); }
+function camFmtDay(sec){
+  try{ return new Date(sec * 1000).toLocaleDateString("en-US", {month:"short", day:"numeric", timeZone:"America/New_York"}); }
+  catch(e){ return ""; }
+}
+function camCsPaint(){
+  var b = camCsBtn(); if(!b) return;
+  if(camCsHtml === null) camCsHtml = b.innerHTML;
+  var chk = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10.5 3.5 3.5L16 5"/></svg>';
+  b.classList.remove("is-busy", "is-done");
+  if(camDone){
+    b.classList.add("is-done"); b.setAttribute("aria-disabled", "true");
+    b.innerHTML = chk + " Completed " + esc(camFmtDay(camDone.at)) + (camDone.by ? " &middot; " + esc(camDone.by) : "");
+  } else if(camCompleting){
+    b.classList.add("is-busy"); b.setAttribute("aria-disabled", "true");
+    b.innerHTML = '<span class="cs-spin" aria-hidden="true"></span> ' + esc(camCsNote || "Completing…");
+  } else {
+    b.removeAttribute("aria-disabled");
+    b.innerHTML = camCsHtml;
+  }
+}
+/* ask the server whether this scope was already completed (by any phone) */
+function camCheckDone(){
+  if(!camOn()) return Promise.resolve(null);
+  return api({op:"summary"}).then(function(j){
+    var d = j && j.scopes && j.scopes[JOB.turn];
+    if(d && d.completedAt){ camDone = {at:d.completedAt, by:d.completedBy || ""}; camCsPaint(); }
+    return camDone;
+  }).catch(function(){ return null; });
+}
 function camCompleteScope(){
-  var n = camItems.length;
-  if(!n){
-    ask("Complete this scope?",
-      "No job photos yet — take a few with the camera button first, then complete the scope.",
+  if(camDone){
+    ask("Already completed",
+      "This scope was completed " + camFmtDay(camDone.at) + (camDone.by ? " by " + camDone.by : "")
+        + ". The photos already went to Steve, so there's nothing else to do.",
       "OK", function(){});
     return;
   }
-  camCompleteAsk(n);
+  if(camCompleting){ camToast("Still finishing up, hang on…"); return; }
+  var c = camCounts();
+  if(!camOn() && !c.mine){
+    ask("Complete this scope?",
+      "No job photos yet. Take a few with the camera button first, then complete the scope.",
+      "OK", function(){});
+    return;
+  }
+  camCompleteAsk(c.n);
 }
 function camSavedName(){ try{ return localStorage.getItem("fgt.crewName") || ""; }catch(e){ return ""; } }
+function camLoginRole(){ try{ return sessionStorage.getItem("fgt.in") || ""; }catch(e){ return ""; } }
+function camLoginName(){
+  var pn = "", owner = "";
+  try{ pn = sessionStorage.getItem("fgt.pn") || ""; owner = sessionStorage.getItem("fgt.owner") || ""; }catch(e){}
+  if(pn) return pn;
+  var saved = camSavedName(); if(saved) return saved;
+  if(owner) return "Steve Wiers";
+  if(camLoginRole() === "manager") return "Jimmy Barber";
+  return "";
+}
 var camDoneEl = null;
 function camCompleteAsk(n){
   if(camDoneEl) return;
+  var loggedIn = !!camLoginRole();
   camDoneEl = document.createElement("div");
   camDoneEl.className = "ask";
   camDoneEl.innerHTML = '<div class="ask-card" role="alertdialog" aria-modal="true" aria-labelledby="cdT">'
     + '<h3 id="cdT">Complete this scope?</h3>'
-    + '<p>This sends all ' + n + ' job photo' + (n === 1 ? "" : "s") + ' to Steve&rsquo;s email. Type your name so he knows who finished it.</p>'
+    + '<p>' + (n ? 'This sends all ' + n + ' job photo' + (n === 1 ? "" : "s") + ' to Steve&rsquo;s email.'
+                 : 'This sends the job photos to Steve&rsquo;s email.')
+    + (loggedIn ? ' Check the name is right, then tap Complete.' : ' Type your name so he knows who finished it.') + '</p>'
     + '<input class="ask-name" id="camDoneName" type="text" autocomplete="name" autocapitalize="words"'
-    + ' placeholder="Your name" value="' + esc(camSavedName()) + '" aria-label="Your name">'
+    + ' placeholder="Your name" value="' + esc(camLoginName()) + '" aria-label="Your name">'
     + '<div class="ask-row">'
     + '<button class="btn" data-cd="no">Cancel</button>'
-    + '<button class="btn primary" id="camDoneYes" data-cd="yes" disabled>Complete &amp; send</button>'
+    + '<button class="btn primary" id="camDoneYes" data-cd="yes">Complete &amp; send</button>'
     + '</div></div>';
   document.body.appendChild(camDoneEl);
   document.body.style.overflow = "hidden";
   var inp = document.getElementById("camDoneName"), yes = document.getElementById("camDoneYes");
-  function valid(){ return inp.value.replace(/[^A-Za-z]/g, "").length >= 2; }   // at least two letters
+  function valid(){ return loggedIn || inp.value.replace(/[^A-Za-z]/g, "").length >= 2; }
   function upd(){ yes.disabled = !valid(); }
   inp.addEventListener("input", upd); upd();
   camDoneEl.addEventListener("click", function(e){
     if(e.target === camDoneEl || e.target.closest('[data-cd="no"]')) return camCompleteClose();
     if(e.target.closest('[data-cd="yes"]')){
-      if(!valid()) return;
+      if(!valid()){ inp.focus(); camToast("Type your name first"); return; }
       var name = inp.value.trim();
-      try{ localStorage.setItem("fgt.crewName", name); }catch(_){}
+      if(name){ try{ localStorage.setItem("fgt.crewName", name); }catch(_){} }
+      else name = camLoginRole() === "manager" ? "Manager" : "Crew";
       camCompleteClose();
       camSendEmail(name);
     }
   });
-  setTimeout(function(){ inp.focus(); }, 40);
+  if(!inp.value) setTimeout(function(){ inp.focus(); }, 40);
 }
 function camCompleteClose(){
   if(!camDoneEl) return;
   camDoneEl.remove(); camDoneEl = null;
   document.body.style.overflow = (camEl || camViewEl) ? "hidden" : "";
 }
+/* let this phone's queued uploads finish first (max ~2 min), so the email has them all */
+function camWaitUploads(){
+  return new Promise(function(res){
+    var t0 = Date.now();
+    camRetry();
+    (function tick(){
+      var left = camItems.filter(function(i){ return i.status !== "sent"; }).length;
+      if(!left || navigator.onLine === false || Date.now() - t0 > 120000) return res(left);
+      camCsNote = "Uploading photos… " + left + " left"; camCsPaint();
+      setTimeout(tick, 800);
+    })();
+  });
+}
 function camSendEmail(by){
   by = by || "";
-  if(camOn()){
-    camToast("Sending photos to Steve's email…");
-    camRetry();
-    api({op:"complete", turn:JOB.turn, house:JOB.short, to:JOB.sendTo, by:by}).then(function(r){
-      camToast("Sent " + (r.count || 0) + " photo" + (r.count === 1 ? "" : "s") + " to Steve's email.");
-      var bar = document.getElementById("camDoneBar"); if(bar) bar.remove();
-    }).catch(function(){
-      camToast("Couldn't reach the server — opening your share menu instead.");
-      camShare(by);
-    });
-  } else {
+  if(!camOn()){
     /* no backend yet: the phone's share menu, they pick Mail to Steve */
     camShare(by);
     camToast("Pick Mail and send the photos to " + (JOB.sendTo || "Steve") + ".");
+    return;
   }
+  camCompleting = true; camCsNote = ""; camCsPaint();
+  camWaitUploads().then(function(left){
+    if(left) camToast(left + " photo" + (left === 1 ? " is" : "s are") + " still uploading; they'll land in Drive when signal comes back.");
+    camCsNote = "Completing…"; camCsPaint();
+    return api({op:"complete", turn:JOB.turn, house:JOB.short, to:JOB.sendTo, by:by});
+  }).then(function(r){
+    camCompleting = false;
+    camDone = {at:Math.floor(Date.now() / 1000), by:by};
+    camCsPaint();
+    camCheckDone();                         // show the server's real (first-press) stamp
+    camToast("Completed. Sent " + (r.count || 0) + " photo" + (r.count === 1 ? "" : "s") + " to Steve's email.");
+    var bar = document.getElementById("camDoneBar"); if(bar) bar.remove();
+  }).catch(function(){
+    /* the server may have stamped it and still be emailing: check before saying it failed */
+    camCheckDone().then(function(d){
+      camCompleting = false; camCsPaint();
+      camToast(d ? "Completed. The photos are still on their way to Steve."
+                 : "Couldn't reach the server. Check your signal and tap Complete again.");
+    });
+  });
 }
 
 /* ---- boot ---- */
 camFabInit();
 (function(){ var b = document.getElementById("completeScope"); if(b) b.addEventListener("click", camCompleteScope); })();
+if(!camViewOnly()) setTimeout(camCheckDone, 800);
 camOpenDB().then(function(db){ camDB = db; return camLoad(); }).then(function(all){
   camItems = all.filter(function(i){ return i.turn === JOB.turn; }).sort(function(a, b){ return a.at < b.at ? -1 : 1; });
   camFabUpd(); camPump();
@@ -2477,7 +2571,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261025-153530";          // stamped in at publish time
+  var CAM_BUILD = "20261112-200732";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
