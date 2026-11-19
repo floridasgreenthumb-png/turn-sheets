@@ -877,7 +877,7 @@ var ROOM_ORDER = ["Whole House","Living Room","Kitchen","Dining Room","Entrance"
 
 /* id, trade, name, rooms, note, qty, cost, photo# */
 var T = [
- [1, "window", "Replace the broken window glass (46 x 92 tempered)", ["Exterior"], "Change order: replace the broken glass that was boarded up. Already DONE by Jimmy (glass from Brandon Glass & Mirror, 11/17). Nothing left to do here.", 1, 0, 0]
+ [1, "window", "Glass pane: extra on top of the scope's (46 x 92 tempered)", ["Exterior"], "Change order: the main Glenburne scope already pays for the glass pane (task 10). This change order adds more, for in all. Already DONE by Jimmy (glass from Brandon Glass & Mirror, 11/17). Nothing left to do here.", 1, 0, 0]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -2548,7 +2548,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261119-232402";          // stamped in at publish time
+  var CAM_BUILD = "20261119-234348";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
