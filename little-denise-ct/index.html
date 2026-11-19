@@ -812,7 +812,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="head">
       <div class="addr">
         <a class="addr-link" id="mapsLink" target="_blank" rel="noopener" aria-label="Open in Google Maps and navigate"><h1>4705 Little Denise Court</h1><span class="addr-go"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>Navigate</span></a>
-        <div class="sub">Valrico, FL 33594 &middot; American Homes 4 Rent &middot; <b>PO pending</b> &middot; Access: AMH app code &middot; inspector Leo Hernandez (lcarpiohernandez@amh.com)</div>
+        <div class="sub">Valrico, FL 33594 &middot; American Homes 4 Rent &middot; <b>AMH WO FL15147</b> &middot; PO 1430824 &middot; Access: AMH app code &middot; inspector Leo Hernandez (lcarpiohernandez@amh.com)</div>
         <details class="pcon" id="pContacts" hidden><summary>Progress contacts</summary><div class="pcon-list" id="pContactsList"></div></details>
         <div class="mode connecting" id="mode">Connecting…</div>
         <button class="whoami" id="whoami" type="button" hidden></button>
@@ -824,7 +824,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
             stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4"
             transform="rotate(-90 23 23)"></circle>
         </svg>
-        <div class="rt"><div class="n mono" id="ringN">0/21</div><div class="l">done</div></div>
+        <div class="rt"><div class="n mono" id="ringN">0/23</div><div class="l">done</div></div>
       </div>
     </div>
 
@@ -854,7 +854,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div class="bar">
   <div class="bar-in">
-    <div class="lbl" id="barN">0 of 21</div>
+    <div class="lbl" id="barN">0 of 23</div>
     <div class="pb"><i id="barI" style="width:0%"></i></div>
     <div class="lbl" id="barPct">0%</div>
     <button class="up" id="toTop" aria-label="Back to top">
@@ -870,7 +870,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17zM8 7h4M8 10h4"/></svg>
     Receipts &amp; payout
   </button>
-  <div class="legal">Price pending the AMH PO &middot; American Homes 4 Rent &middot; inspector Leo Hernandez (lcarpiohernandez@amh.com) &middot; outside work removed &middot; 21 tasks</div>
+  <div class="legal">Scope total $1,287.48 &middot; American Homes 4 Rent &middot; WO FL15147 &middot; PO 1430824 &middot; outside work removed &middot; 23 tasks</div>
 </div>
 
 <script>
@@ -900,27 +900,29 @@ var ROOM_ORDER = ["Whole House","Living Room","Kitchen","Dining Room","Entrance"
 
 /* id, trade, name, rooms, note, qty, cost, photo# */
 var T = [
- [1, "paint", "Wall wash (whole interior)", ["Whole home"], "Wash all the walls before paint. SUGGESTION: TSP or degreaser in the kitchen and baths.", 1, 0.0, 1],
- [2, "paint", "Prep and paint full interior (SW Alabaster)", ["Whole home"], "Prep all walls, then paint wall to wall Sherwin-Williams Alabaster. SUGGESTION: do it after all the patches below.", 1, 0.0, 2],
- [3, "paint", "Paint doors, trim and baseboards", ["Whole home"], "Paint the doors, trim and baseboards. Caulk the trim gaps first.", 1, 0.0, 3],
- [4, "paint", "Patch ceiling crack and repaint white", ["Family room"], "Repair the crack and repaint the ceiling to match white. SUGGESTION: mesh tape so it doesn't come back.", 1, 0.0, 4],
- [5, "paint", "Seal crack on the corner", ["Dining room"], "Seal the crack on the corner. SUGGESTION: if it's the outside corner bead, re-set it before the mud.", 1, 0.0, 5],
- [6, "paint", "Patch the wall around the outlet", ["Kitchen"], "Repair the damaged section around the outlet. SUGGESTION: breaker off and pull the cover; add a box extender/new plate after.", 1, 0.0, 6],
- [7, "paint", "Patch hole before painting", ["Master bathroom"], "Patch the hole before paint.", 1, 0.0, 7],
- [8, "paint", "Paint bathroom ceiling (prime if needed)", ["Bathroom 1"], "Paint the bath ceiling white; prime first if needed.", 1, 0.0, 8],
- [9, "paint", "Repair and repaint garage ceiling water spot", ["Garage"], "Evidence of a water leak: repair and repaint. SUGGESTION: find out if the leak is still active and tell Steve before covering it; Kilz before paint.", 1, 0.0, 9],
- [10, "paint", "Paint the front entry doors to match + white trim", ["Front exterior"], "Paint the outside of the entry doors to match the color, with white trim. SUGGESTION: tape off the glass; exterior paint.", 1, 0.0, 10],
- [11, "window", "Replace window balancer (window won't stay up)", ["Master bathroom"], "The window won't stay up: replace the balancer. SUGGESTION: read the tag on the old balance to match it.", 1, 0.0, 11],
- [12, "window", "Rescreen window", ["Master bathroom"], "The screen is old and damaged. Rescreen it.", 1, 0.0, 12],
- [13, "window", "Rescreen window", ["Master bedroom"], "The screen is old. Rescreen it.", 1, 0.0, 13],
- [14, "window", "Replace window screen", ["Bedroom 1"], "Replace the old screen. Match size and frame color.", 1, 0.0, 14],
- [15, "window", "Replace window screen (right side, frame damaged)", ["Bedroom 2"], "Replace the right-side screen; the frame is damaged.", 1, 0.0, 15],
- [16, "door", "Install missing bifold door (right side), painted white", ["Laundry"], "The right-side bifold is missing. Paint the new door white before you install it.", 1, 0.0, 16],
- [17, "plumb", "Remove the stuck hot-side washer hose", ["Laundry"], "The hot hose is corroded and hard to remove: take it off. SUGGESTION: valve off, penetrating oil, two wrenches. If the valve is seized or leaks, tell Steve.", 1, 0.0, 17],
- [18, "door", "Reinstall hallway closet doors (new wheels if needed)", ["Hallway"], "The closet doors are off their track. Reinstall them; change the wheels if needed.", 1, 0.0, 18],
- [19, "door", "Replace rotten garage exterior door frame", ["Garage"], "The garage exterior door frame is rotten: replace it. SUGGESTION: PVC/composite jamb or brickmould at the bottom so it doesn't rot again; new weatherstrip.", 1, 0.0, 19],
- [20, "plumb", "Replace leaking hose bib", ["Left exterior"], "The hose bib leaks when it's off. Replace it. SUGGESTION: shut the main and match the connection.", 1, 0.0, 20],
- [21, "env", "Remove broken tile walkway section and reseal", ["Front exterior"], "Remove the broken tile section from where the big flower bed starts to the driveway and reseal the paved section (trip hazard). SUGGESTION: tell Steve what's under the tile once it's up.", 1, 0.0, 21]
+ [1, "paint", "Wall wash (whole interior)", ["Whole home"], "Wash all the walls before paint. SUGGESTION: TSP or degreaser in the kitchen and baths.", 1, 50.0, 1],
+ [2, "paint", "Prep and paint full interior (SW Alabaster, 1,586 sq ft)", ["Whole home"], "Prep all walls, then paint wall to wall Sherwin-Williams Alabaster. SUGGESTION: do it after all the patches below.", 1, 285.48, 2],
+ [3, "paint", "Paint doors, trim and baseboards", ["Whole home"], "Paint the doors, trim and baseboards. Caulk the trim gaps first.", 1, 200.0, 3],
+ [4, "paint", "Patch ceiling crack and repaint white", ["Family room"], "Repair the crack and repaint the ceiling to match white. SUGGESTION: mesh tape so it doesn't come back.", 1, 25.0, 4],
+ [5, "paint", "Seal crack on the corner", ["Dining room"], "Seal the crack on the corner. SUGGESTION: if it's the outside corner bead, re-set it before the mud.", 1, 2.0, 5],
+ [6, "paint", "Patch the wall around the outlet", ["Kitchen"], "Repair the damaged section around the outlet. SUGGESTION: breaker off and pull the cover; add a box extender/new plate after.", 1, 25.0, 6],
+ [7, "paint", "Patch hole before painting", ["Master bathroom"], "Patch the hole before paint.", 1, 25.0, 7],
+ [8, "paint", "Paint bathroom ceiling (prime if needed)", ["Bathroom 1"], "Paint the bath ceiling white; prime first if needed.", 1, 50.0, 8],
+ [9, "paint", "Repair and repaint garage ceiling water spot", ["Garage"], "Evidence of a water leak: repair and repaint. SUGGESTION: find out if the leak is still active and tell Steve before covering it; Kilz before paint.", 1, 25.0, 9],
+ [10, "paint", "Paint the front entry doors to match + white trim", ["Front exterior"], "Paint the outside of the entry doors to match the color, with white trim. SUGGESTION: tape off the glass; exterior paint.", 1, 65.0, 10],
+ [11, "window", "Replace window balancer (window won't stay up)", ["Master bathroom"], "The window won't stay up: replace the balancer. SUGGESTION: read the tag on the old balance to match it.", 1, 20.0, 11],
+ [12, "window", "Rescreen window", ["Master bathroom"], "The screen is old and damaged. Rescreen it.", 1, 25.0, 12],
+ [13, "window", "Rescreen window", ["Master bedroom"], "The screen is old. Rescreen it.", 1, 25.0, 13],
+ [14, "window", "Replace window screen", ["Bedroom 1"], "Replace the old screen. Match size and frame color.", 1, 25.0, 14],
+ [15, "window", "Replace window screen (right side, frame damaged)", ["Bedroom 2"], "Replace the right-side screen; the frame is damaged.", 1, 35.0, 15],
+ [16, "door", "Install missing bifold door (right side), painted white", ["Laundry"], "The right-side bifold is missing. Paint the new door white before you install it.", 1, 150.0, 16],
+ [17, "plumb", "Remove the stuck hot-side washer hose", ["Laundry"], "The hot hose is corroded and hard to remove: take it off. SUGGESTION: valve off, penetrating oil, two wrenches. If the valve is seized or leaks, tell Steve.", 1, 5.0, 17],
+ [18, "door", "Reinstall hallway closet doors (new wheels if needed)", ["Hallway"], "The closet doors are off their track. Reinstall them; change the wheels if needed.", 1, 5.0, 18],
+ [19, "door", "Replace rotten garage exterior door frame", ["Garage"], "The garage exterior door frame is rotten: replace it. SUGGESTION: PVC/composite jamb or brickmould at the bottom so it doesn't rot again; new weatherstrip.", 1, 75.0, 19],
+ [20, "plumb", "Replace leaking hose bib", ["Left exterior"], "The hose bib leaks when it's off. Replace it. SUGGESTION: shut the main and match the connection.", 1, 50.0, 20],
+ [21, "env", "Remove broken tile walkway section and reseal", ["Front exterior"], "Remove the broken tile section from where the big flower bed starts to the driveway and reseal the paved section (trip hazard). SUGGESTION: tell Steve what's under the tile once it's up.", 1, 100.0, 21],
+ [22, "common", "Reset soffit and ceiling section at the entry", ["Front exterior"], "Reset the loose soffit/ceiling piece in the front entryway. SUGGESTION: re-fasten into the framing with screws, caulk the seams and touch up the paint.", 1, 10.0, 22],
+ [23, "common", "Vacuum and clean laundry walls and floor", ["Laundry"], "Vacuum and wipe down the laundry room walls and the floor.", 1, 10.0, 23]
 ].map(function(r){return {id:r[0],trade:r[1],name:r[2],rooms:r[3],note:r[4],qty:r[5],cost:r[6],ph:r[7]};});
 
 /* per-scope details printed onto the change order form — set these for each new scope */
@@ -930,7 +932,7 @@ var JOB = {
   zip: "33594",
   cityLine: "Valrico FL 33594",
   turn: "LDENISE4705",
-  scopeTotal: 0.0,
+  scopeTotal: 1287.48,
   sendTo: "floridasgreenthumb@gmail.com"
 };
 /* Progress contacts: JOB.contacts = [[role, name, phone, email], ...] from the spec */
@@ -2600,7 +2602,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261118-230510";          // stamped in at publish time
+  var CAM_BUILD = "20261119-011905";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
