@@ -49,7 +49,9 @@ fgtGeo().then(function(loc){o.loc=loc;fetch(BU,{method:"POST",keepalive:true,hea
 <title>1443 Baythorn Turn Sheet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<!-- fonts load in the background: the page shows at once in the phone's own font, then swaps (weak signal used to leave a blank page while this loaded) -->
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"></noscript>
 <style>
 :root{
   --paper:#E9ECEA; --surface:#FFFFFF; --surface-2:#F3F5F4;
@@ -1853,16 +1855,37 @@ try{ SYNC_ME = localStorage.getItem("turnsheet.by") || ""; }catch(e){}
 try{ syncQ = JSON.parse(localStorage.getItem(KEY + ".q") || "[]") || []; }catch(e){ syncQ = []; }
 function syncSaveQ(){ try{ localStorage.setItem(KEY + ".q", JSON.stringify(syncQ)); }catch(e){} }
 
-function api(body){
+/* Every request gives up after a set time (weak signal used to leave a request hanging
+   forever, which left "busy" flags stuck until the page was reloaded). Small requests
+   get 25 s; uploads, full-size downloads and Complete get longer because they move a
+   whole photo / make the server email every photo. A timed-out request rejects like
+   any other failure, so the callers' normal retry paths take over. */
+var API_MS = 25000;
+var API_SLOW = {photo:120000, receipt:120000, complete:150000, photofull:60000, receiptfull:60000};
+function api(body, ms){
   var b = JSON.parse(JSON.stringify(body));
   b.k = BACKEND_KEY;
-  return fetch(BACKEND_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(b)})
+  ms = ms || API_SLOW[b.op] || API_MS;
+  var ctl = (typeof AbortController === "function") ? new AbortController() : null;
+  var opts = {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(b)};
+  if(ctl) opts.signal = ctl.signal;
+  var timer = null;
+  var gaveUp = new Promise(function(res, rej){
+    timer = setTimeout(function(){
+      if(ctl){ try{ ctl.abort(); }catch(e){} }
+      rej(new Error("timeout"));
+    }, ms);
+  });
+  var call = fetch(BACKEND_URL, opts)
     .then(function(r){ return r.json(); })
     .then(function(j){
       if(!j || !j.ok) throw new Error((j && j.error) || "no answer");
       return j;
     });
+  call.catch(function(){});                      // if the timer wins, the late failure is already handled
+  return Promise.race([call, gaveUp]).then(
+    function(j){ clearTimeout(timer); return j; },
+    function(e){ clearTimeout(timer); throw e; });
 }
 
 /* server state -> this page, with this phone's unsent changes laid on top */
@@ -1923,9 +1946,18 @@ function syncPush(op){
   syncSaveQ();
   syncFlush();
 }
+/* Safety net: a busy flag that has been up far longer than any request can last
+   (requests time out at 25 s) is cleared, so syncing can never stay stuck. */
+var syncBusyAt = 0, syncPollAt = 0;
+function syncWatchdog(){
+  var now = Date.now();
+  if(syncBusy && now - syncBusyAt > 60000){ syncBusy = false; }
+  if(syncPolling && now - syncPollAt > 60000){ syncPolling = false; }
+  if(!syncBusy && syncQ.length && navigator.onLine !== false) syncFlush();
+}
 function syncFlush(){
   if(syncBusy || !syncQ.length || !BACKEND_URL) return;
-  syncBusy = true;
+  syncBusy = true; syncBusyAt = Date.now();
   var op = syncQ[0];
   api(op).then(function(s){
     syncQ = syncQ.filter(function(o){ return o !== op; });
@@ -1943,7 +1975,7 @@ function syncPoll(){
   if(!BACKEND_URL || document.hidden || syncPolling) return;
   if(syncQ.length){ syncFlush(); return; }
   var epoch = syncEpoch;
-  syncPolling = true;
+  syncPolling = true; syncPollAt = Date.now();
   api({op:"state", turn:JOB.turn})
     .then(function(s){
       syncPolling = false;
@@ -1977,6 +2009,7 @@ function syncStart(){
   syncLoading();
   syncPoll();
   setInterval(syncPoll, 15000);
+  setInterval(syncWatchdog, 10000);
   window.addEventListener("online", syncPoll);
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) syncPoll(); });
 }
@@ -2018,7 +2051,54 @@ function camOpenDB(){
 function camStore(mode){ return camDB.transaction("p", mode).objectStore("p"); }
 function camPut(it){ return new Promise(function(res){ if(!camDB) return res(); try{ var q=camStore("readwrite").put(it); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
 function camRemove(id){ return new Promise(function(res){ if(!camDB) return res(); try{ var q=camStore("readwrite").delete(id); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
-function camLoad(){ return new Promise(function(res){ if(!camDB) return res([]); try{ var q=camStore("readonly").getAll(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){res([]);} }); }
+/* Phone storage clean-up (2026-11-19). A photo is only ever removed from the phone when
+   ALL of these are true: the server answered "saved" for it (status "sent"), and that was
+   more than CAM_KEEP_DAYS days ago. Anything waiting / failed / not sent is never touched.
+   The photo itself stays in Steve's Drive and still shows in the shared gallery. */
+var CAM_KEEP_DAYS = 7;
+function camSentMs(it){
+  var t = (typeof it.sentAt === "number" && it.sentAt) ? it.sentAt
+        : (typeof it.at === "number" ? it.at * 1000 : new Date(it.at).getTime());
+  return isNaN(t) ? 0 : t;
+}
+function camOld(it){
+  if(!it || it.status !== "sent") return false;
+  var t = camSentMs(it);
+  return t > 0 && (Date.now() - t) > CAM_KEEP_DAYS * 86400000;
+}
+function camLoadAll(){ return new Promise(function(res){ if(!camDB) return res([]); try{ var q=camStore("readonly").getAll(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){res([]);} }); }
+/* Walk the store one photo at a time: keep THIS job's photos, and drop old already-sent
+   photos that belong to other jobs (they used to pile up on the phone forever). */
+function camLoad(){
+  return new Promise(function(res){
+    if(!camDB) return res([]);
+    var mine = [], done = false;
+    function finish(){ if(!done){ done = true; res(mine); } }
+    try{
+      var tx = camDB.transaction("p", "readwrite"), q = tx.objectStore("p").openCursor();
+      q.onsuccess = function(){
+        var cur = q.result;
+        if(!cur) return;
+        var v = cur.value;
+        try{
+          if(v && v.turn === JOB.turn) mine.push(v);
+          else if(camOld(v)) cur.delete();
+        }catch(e){}
+        cur.continue();
+      };
+      tx.oncomplete = finish;
+      tx.onerror = tx.onabort = function(){
+        if(done) return;
+        camLoadAll().then(function(all){               // fall back to the old way of reading
+          mine = all.filter(function(i){ return i.turn === JOB.turn; });
+          finish();
+        });
+      };
+    }catch(e){
+      camLoadAll().then(function(all){ mine = all.filter(function(i){ return i.turn === JOB.turn; }); finish(); });
+    }
+  });
+}
 
 /* ---- taking a photo ---- */
 function camShrink(file){
@@ -2118,18 +2198,23 @@ function camThumb(blob){
   });
 }
 function camAtSec(x){ return typeof x.at === "number" ? x.at : Math.floor(new Date(x.at).getTime() / 1000); }
+var camBusyAt = 0;
 function camPump(){
+  /* safety net: an upload times out at 2 minutes, so a busy flag older than 3 is stale */
+  if(camBusy && Date.now() - camBusyAt > 180000) camBusy = false;
   if(camBusy || !camOn() || navigator.onLine === false) return;
   var next = camItems.filter(function(i){ return i.status === "waiting"; })[0];
   if(!next) return;
-  camBusy = true;
+  camBusy = true; camBusyAt = Date.now();
   Promise.all([camB64(next.blob), camThumb(next.blob)]).then(function(r){
     return api({op:"photo", turn:JOB.turn, house:JOB.short, room:CAM_ROOM, name:next.name,
                 data:r[0], thumb:r[1], id:next.id, at:camAtSec(next)});
   }).then(function(){
-    next.status = "sent"; return camPut(next);
+    next.status = "sent"; next.sentAt = Date.now();
+    return camItems.indexOf(next) >= 0 ? camPut(next) : null;    // deleted while it was uploading: don't put it back
   }).catch(function(){
-    next.status = "failed"; return camPut(next);
+    next.status = "failed";
+    return camItems.indexOf(next) >= 0 ? camPut(next) : null;
   }).then(function(){
     camBusy = false; camFabUpd();
     if(camItems.some(function(i){ return i.status === "waiting"; })) setTimeout(camPump, 250);
@@ -2147,22 +2232,51 @@ function camCounts(){
 }
 
 /* ---- shared gallery: pull in photos other phones took ---- */
-var camRemote = {}, camGallerySince = 0, camGalleryBusy = false;
+var camRemote = {}, camGallerySince = 0, camGalleryBusy = false, camGalleryAt = 0;
+/* camGalleryCur = how many of the server's photos this page has already been given.
+   The server hands back only what comes after that (a few at a time), so a poll with
+   nothing new is a tiny answer instead of re-sending the newest photo every 20 s.
+   An older back end ignores "cur" and answers by time ("since"), which still works. */
+var camGalleryCur = 0, camOnServer = {};
 function camGalleryPump(){
+  if(camGalleryBusy && Date.now() - camGalleryAt > 90000) camGalleryBusy = false;   // safety net
   if(!camOn() || camGalleryBusy || document.hidden || navigator.onLine === false) return;
-  camGalleryBusy = true;
-  api({op:"gallery", turn:JOB.turn, since:camGallerySince}).then(function(r){
+  camGalleryBusy = true; camGalleryAt = Date.now();
+  api({op:"gallery", turn:JOB.turn, since:camGallerySince, cur:camGalleryCur}, 60000).then(function(r){
     camGalleryBusy = false;
     if(!r || !r.items) return;
     var mine = {}; camItems.forEach(function(i){ mine[i.id] = 1; });
     var changed = false;
     r.items.forEach(function(e){
       if((e.at || 0) > camGallerySince) camGallerySince = e.at;
-      if(mine[e.id]) return;                       // it's one of my own uploads
+      if(mine[e.id]){ camOnServer[e.id] = e; return; }   // one of my own uploads - the server has it
       if(!camRemote[e.id]){ camRemote[e.id] = e; changed = true; }
     });
+    var more = false;
+    if(typeof r.next === "number"){
+      camGalleryCur = r.next;
+      more = typeof r.count === "number" && r.next < r.count && r.items.length > 0;
+    }
+    if(camPurgeSent()) changed = true;
     if(changed){ camFabUpd(); if(camEl) camPanel(); }
+    if(more) setTimeout(camGalleryPump, 400);            // long list: fetch the next few
   }).catch(function(){ camGalleryBusy = false; });
+}
+/* This job's own photos: once one is confirmed saved (status "sent"), is in the server's
+   photo list, and is more than CAM_KEEP_DAYS days old, take the full-size copy off the
+   phone. It keeps showing in the list from the server's copy. Returns true if any went. */
+function camPurgeSent(){
+  var gone = false;
+  camItems = camItems.filter(function(it){
+    var e = camOnServer[it.id];
+    if(!e || !camOld(it) || camViewCurrent === it.id) return true;
+    camRemote[it.id] = e;
+    delete camOnServer[it.id];
+    camRemove(it.id);
+    gone = true;
+    return false;
+  });
+  return gone;
 }
 
 /* ---- the floating button ---- */
@@ -2572,7 +2686,7 @@ if(camOn()){
    drops a "Update" bar at the top. One tap reloads to the latest — no
    reinstall, and checkmarks/photos are kept. */
 (function(){
-  var CAM_BUILD = "20261113-141716";          // stamped in at publish time
+  var CAM_BUILD = "20261123-215750";          // stamped in at publish time
   var GAP = 3 * 60 * 1000;              // don't hit the server more than every 3 min
   var last = 0, shown = false;
   function verUrl(){
@@ -2645,7 +2759,73 @@ function rcpOpenDB(){
 function rcpTx(mode){ return rcpDB.transaction("r", mode).objectStore("r"); }
 function rcpPut(it){ return new Promise(function(res){ if(!rcpDB) return res(); try{ var q=rcpTx("readwrite").put(it); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
 function rcpDel(id){ return new Promise(function(res){ if(!rcpDB) return res(); try{ var q=rcpTx("readwrite").delete(id); q.onsuccess=q.onerror=function(){res();}; }catch(e){res();} }); }
-function rcpLoad(){ return new Promise(function(res){ if(!rcpDB) return res([]); try{ var q=rcpTx("readonly").getAll(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){res([]);} }); }
+function rcpLoadAll(){ return new Promise(function(res){ if(!rcpDB) return res([]); try{ var q=rcpTx("readonly").getAll(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){res([]);} }); }
+/* Phone storage clean-up (2026-11-19). The big part of a receipt is the photo / PDF file.
+   Once the server has confirmed the receipt (status "sent") and RCP_KEEP_DAYS days have
+   passed, the FILE is dropped from the phone; the line itself (amount, store, note, small
+   preview) stays, and tapping it loads the full copy from Steve's Drive. Nothing that is
+   still waiting / not sent is ever touched. */
+var RCP_KEEP_DAYS = 7;
+function rcpSentMs(it){
+  var t = (typeof it.sentAt === "number" && it.sentAt) ? it.sentAt
+        : (typeof it.at === "number" ? it.at * 1000 : new Date(it.at).getTime());
+  return isNaN(t) ? 0 : t;
+}
+function rcpOld(it){
+  if(!it || it.status !== "sent" || !it.blob) return false;
+  var t = rcpSentMs(it);
+  return t > 0 && (Date.now() - t) > RCP_KEEP_DAYS * 86400000;
+}
+/* Walk the store one receipt at a time: keep THIS job's, and drop the old already-sent
+   files that belong to other jobs. */
+function rcpLoad(){
+  return new Promise(function(res){
+    if(!rcpDB) return res([]);
+    var mine = [], done = false;
+    function finish(){ if(!done){ done = true; res(mine); } }
+    function oldWay(){ rcpLoadAll().then(function(all){ mine = all.filter(function(i){ return i.turn === JOB.turn; }); finish(); }); }
+    try{
+      var tx = rcpDB.transaction("r", "readwrite"), q = tx.objectStore("r").openCursor();
+      q.onsuccess = function(){
+        var cur = q.result;
+        if(!cur) return;
+        var v = cur.value;
+        try{
+          if(v && v.turn === JOB.turn) mine.push(v);
+          else if(rcpOld(v)){ v.blob = null; v.fileGone = 1; cur.update(v); }
+        }catch(e){}
+        cur.continue();
+      };
+      tx.oncomplete = finish;
+      tx.onerror = tx.onabort = function(){ if(!done) oldWay(); };
+    }catch(e){ oldWay(); }
+  });
+}
+
+/* ---- deletes that survive no signal ----
+   A deleted receipt is hidden on this phone at once and its id is remembered here
+   (per job, in the phone's storage). The delete is re-sent until the server confirms
+   it, and the id stays on the list for a month so a late upload of the same receipt
+   can never bring it back into the pay numbers. {id: {t: when, ok: 1 once confirmed}} */
+var rcpGone = {}, rcpGoneBusy = false, rcpGoneAt = 0;
+try{ rcpGone = JSON.parse(localStorage.getItem(KEY + ".rcpdel") || "{}") || {}; }catch(e){ rcpGone = {}; }
+(function(){ var now = Date.now(); Object.keys(rcpGone).forEach(function(id){
+  var g = rcpGone[id]; if(!g || (g.ok && now - (g.t || 0) > 30 * 86400000)) delete rcpGone[id]; }); })();
+function rcpGoneSave(){ try{ localStorage.setItem(KEY + ".rcpdel", JSON.stringify(rcpGone)); }catch(e){} }
+function rcpGoneLeft(){ return Object.keys(rcpGone).filter(function(id){ return !rcpGone[id].ok; }); }
+function rcpGonePump(){
+  if(rcpGoneBusy && Date.now() - rcpGoneAt > 60000) rcpGoneBusy = false;      // safety net
+  if(rcpGoneBusy || rcpBusy || !rcpOn() || navigator.onLine === false) return; // never race an upload in flight
+  var id = rcpGoneLeft()[0];
+  if(!id) return;
+  rcpGoneBusy = true; rcpGoneAt = Date.now();
+  api({op:"receiptdel", turn:JOB.turn, id:id}).then(function(){
+    rcpGoneBusy = false;
+    if(rcpGone[id]){ rcpGone[id].ok = 1; rcpGone[id].t = Date.now(); rcpGoneSave(); }
+    if(rcpEl) rcpPanel();
+    if(rcpGoneLeft().length) setTimeout(rcpGonePump, 300); else rcpPull();
+  }).catch(function(){ rcpGoneBusy = false; });                                // stays queued; retried on the next tick
+}
 
 /* ---- helpers ---- */
 function rcpB64(blob){ return new Promise(function(res, rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result).split(",")[1]); }; r.onerror=rej; r.readAsDataURL(blob); }); }
@@ -2713,16 +2893,20 @@ function rcpAddEntry(){
   rcpItems.push(it); rcpPending=null; rcpCat="job"; rcpCard="amex";
   rcpPut(it).then(function(){ rcpBtnUpd(); rcpPanel(); rcpPump(); });
 }
+var rcpBusyAt = 0;
 function rcpPump(){
+  if(rcpBusy && Date.now() - rcpBusyAt > 180000) rcpBusy = false;   // safety net: an upload times out at 2 minutes
   if(rcpBusy || !rcpOn() || navigator.onLine===false) return;
   var next=rcpItems.filter(function(i){ return i.status==="waiting"; })[0];
-  if(!next) return; rcpBusy=true;
+  if(!next){ rcpGonePump(); return; }
+  rcpBusy=true; rcpBusyAt=Date.now();
   (next.blob ? rcpB64(next.blob) : Promise.resolve("")).then(function(data){
     return api({op:"receipt", turn:JOB.turn, house:JOB.short, id:next.id, amount:next.amount,
       store:next.store, note:next.note, cat:rcpCatOf(next), card:next.card||"amex", pers:Number(next.pers)||0, by:next.by, at:rcpAtSec(next), data:data, mime:next.mime, name:next.name, thumb:next.thumb});
-  }).then(function(){ next.status="sent"; return rcpPut(next); })
-    .catch(function(){ next.status="failed"; return rcpPut(next); })
-    .then(function(){ rcpBusy=false; rcpBtnUpd(); if(rcpItems.some(function(i){return i.status==="waiting";})) setTimeout(rcpPump,300); });
+  }).then(function(){ next.status="sent"; next.sentAt=Date.now(); return rcpGone[next.id] ? rcpDel(next.id) : rcpPut(next); })
+    .catch(function(){ next.status="failed"; return rcpGone[next.id] ? rcpDel(next.id) : rcpPut(next); })   // deleted meanwhile: don't put it back
+    .then(function(){ rcpBusy=false; rcpBtnUpd();
+      if(rcpItems.some(function(i){return i.status==="waiting";})) setTimeout(rcpPump,300); else rcpGonePump(); });
 }
 function rcpRetry(){ rcpItems.forEach(function(i){ if(i.status==="failed") i.status="waiting"; }); rcpPump(); }
 function rcpRemove(it){
@@ -2732,20 +2916,43 @@ function rcpRemove(it){
       rcpItems=rcpItems.filter(function(i){ return i.id!==id; });
       delete rcpRemote[id];
       rcpDel(id);
-      if(rcpOn()) api({op:"receiptdel", turn:JOB.turn, id:id}).catch(function(){});
+      if(rcpOn()){ rcpGone[id] = {t:Date.now()}; rcpGoneSave(); rcpGonePump(); }   // re-sent until the server confirms
       rcpBtnUpd(); rcpPanel();
     });
 }
 
 /* ---- live pull ---- */
+var rcpPullBusy = false, rcpPullAt = 0, rcpVer = "";
 function rcpPull(){
   if(!rcpManager() || !rcpOn() || document.hidden || navigator.onLine===false) return;
-  api({op:"receipts", turn:JOB.turn}).then(function(r){
-    if(!r || !r.items) return;
-    var mine={}; rcpItems.forEach(function(i){ mine[i.id]=1; });
-    var next={}; r.items.forEach(function(e){ if(!mine[e.id]) next[e.id]=e; });
+  rcpGonePump();                                                    // any delete still waiting goes first
+  if(rcpPullBusy && Date.now() - rcpPullAt > 90000) rcpPullBusy = false;   // safety net
+  if(rcpPullBusy) return;
+  rcpPullBusy = true; rcpPullAt = Date.now();
+  /* "v" = the version of the list this page already has; a newer back end answers
+     {same:true} when nothing changed instead of sending every receipt again */
+  api({op:"receipts", turn:JOB.turn, v:rcpVer}, 60000).then(function(r){
+    rcpPullBusy = false;
+    if(!r || r.same || !r.items) return;
+    rcpVer = r.v || "";
+    var mine={}; rcpItems.forEach(function(i){ mine[i.id]=i; });
+    var next={}, back=false;
+    r.items.forEach(function(e){
+      var g = rcpGone[e.id];
+      if(g){                                                        // deleted on this phone: keep it hidden
+        if(g.ok){ delete g.ok; g.t = Date.now(); back = true; }     // ...and if it came back, delete it again
+        return;
+      }
+      var it = mine[e.id];
+      if(it){                                                       // my own receipt, and the server has it
+        if(rcpOld(it)){ it.blob = null; it.fileGone = 1; rcpPut(it); }
+        return;
+      }
+      next[e.id]=e;
+    });
+    if(back){ rcpGoneSave(); rcpVer = ""; rcpGonePump(); }
     rcpRemote=next; rcpBtnUpd(); if(rcpEl) rcpPanel();
-  }).catch(function(){});
+  }).catch(function(){ rcpPullBusy = false; });
 }
 
 /* ---- the bottom-bar button ---- */
@@ -2790,6 +2997,10 @@ function rcpPanel(){
     + '<div class="pay-split" style="grid-template-columns:1fr"><div class="pay-cut mgr"><div class="k">Your pay</div><div class="v mono">'+money(p.mgr)+'</div></div></div>'
     + '<p class="pay-note">Job supplies come off the scope total before your '+p.pct+'%. Anything that isn&rsquo;t for the job (food, drinks, personal) comes 100% off your pay.</p>'
     + '</section>';
+
+  var goneLeft = rcpGoneLeft().length;
+  if(goneLeft) h+='<p class="pay-note" role="status">'+goneLeft+' deleted receipt'+(goneLeft===1?' is':'s are')
+    +' already off your numbers here. The delete finishes on the server as soon as there&rsquo;s signal.</p>';
 
   /* add-a-receipt card */
   h+='<section class="co-card"><h3 class="cam-h">Add a receipt</h3>';
@@ -2896,7 +3107,11 @@ function rcpViewClose(){ if(rcpViewUrl){ URL.revokeObjectURL(rcpViewUrl); rcpVie
 if(rcpManager()){
   rcpBtnUpd();
   rcpOpenDB().then(function(db){ rcpDB=db; return rcpLoad(); }).then(function(all){
-    rcpItems=all.filter(function(i){ return i.turn===JOB.turn; }).sort(function(a,b){ return a.at<b.at?-1:1; });
+    rcpItems=all.filter(function(i){
+      if(i.turn!==JOB.turn) return false;
+      if(rcpGone[i.id]){ rcpDel(i.id); return false; }
+      return true;
+    }).sort(function(a,b){ return a.at<b.at?-1:1; });
     rcpBtnUpd(); rcpPump(); rcpPull();
   });
   window.addEventListener("online", function(){ rcpRetry(); rcpPull(); });

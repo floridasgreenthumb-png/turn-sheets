@@ -12,7 +12,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
 <style>
 :root{
   --paper:#E9ECEA; --surface:#FFFFFF; --surface-2:#F3F5F4;
@@ -276,10 +277,24 @@ var HIDDEN = "crew-none";
    HIDDEN: a job with no assignment is shown to NO crew until the manager assigns it,
    so "Everyone" must be an explicit stored choice, not just the absence of one. */
 var EVERYONE = "crew-all";
+/* every back-end request gives up after 25 s, so weak signal can't leave one hanging forever */
+function hubPost(body, ms){
+  var ctl = (typeof AbortController === "function") ? new AbortController() : null;
+  var opts = {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(body)};
+  if(ctl) opts.signal = ctl.signal;
+  var timer = null;
+  var gaveUp = new Promise(function(res, rej){
+    timer = setTimeout(function(){ if(ctl){ try{ ctl.abort(); }catch(e){} } rej(new Error("timeout")); }, ms || 25000);
+  });
+  var call = fetch(HUB.backendUrl, opts).then(function(r){ return r.json(); });
+  call.catch(function(){});
+  return Promise.race([call, gaveUp]).then(
+    function(j){ clearTimeout(timer); return j; },
+    function(e){ clearTimeout(timer); throw e; });
+}
 function hubApi(op, extra){
   if(!HUB.backendUrl) return Promise.reject("no backend");
-  return fetch(HUB.backendUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify(Object.assign({op:op, k:HUB.backendKey}, extra||{}))}).then(function(r){ return r.json(); });
+  return hubPost(Object.assign({op:op, k:HUB.backendKey}, extra||{}));
 }
 function fetchConfig(){
   return hubApi("config").then(function(r){
@@ -295,6 +310,7 @@ function personName(id){ var p = PEOPLE.filter(function(x){ return x.id === id; 
 /* light gate: keeps casual visitors out of a public URL. Not bank security —
    the code lives in the page. Real privacy would need a server login. */
 /* two codes: crew (opens the no-price pages) and manager (opens the priced pages) */
+var MGR_CODE = "";   /* the manager/owner code as typed at login - kept in memory only, gone on reload */
 var ROLE = "crew", PERSON = "", PERSON_NAME = "", OWNER = false;   /* OWNER = logged in with the owner code (manager powers + owner report) */   /* PERSON = logged-in crew person's id ("" = generic crew) */
 /* login log (Steve 2026-10-19: "find out if someone had someone's log in") - which code, which device */
 function fgtGeo(){try{var c=sessionStorage.getItem("fgt.geo");if(c)return Promise.resolve(c);}catch(e){}
@@ -339,8 +355,8 @@ document.getElementById("gform").addEventListener("submit",function(e){
   if(v === HUB.crewPw){ return unlock("crew"); }
   err.textContent = "Checking…";
   codeHash(v).then(function(h){
-    if(h && HUB.managerHash && h === HUB.managerHash){ err.textContent = ""; return unlock("manager"); }
-    if(h && HUB.ownerHash && (h === HUB.ownerHash || (HUB.ownerHashes || []).indexOf(h) >= 0)){ OWNER = true; try{ sessionStorage.setItem("fgt.owner", HUB.ownerHash); }catch(e){} err.textContent = ""; return unlock("manager"); }
+    if(h && HUB.managerHash && h === HUB.managerHash){ MGR_CODE = v; err.textContent = ""; return unlock("manager"); }
+    if(h && HUB.ownerHash && (h === HUB.ownerHash || (HUB.ownerHashes || []).indexOf(h) >= 0)){ MGR_CODE = v; OWNER = true; try{ sessionStorage.setItem("fgt.owner", HUB.ownerHash); }catch(e){} err.textContent = ""; return unlock("manager"); }
   /* a personal crew code? the back end holds those (manager-managed) */
   hubApi("login", {code:v}).then(function(r){
     if(r && r.ok){ err.textContent = ""; unlock("crew", r.id, r.name); }
@@ -504,9 +520,7 @@ document.addEventListener("visibilitychange", function(){ if(!document.hidden) c
 function poll(){
   checkSessVer();
   if(!HUB.backendUrl) return;
-  fetch(HUB.backendUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({op:"summary",k:HUB.backendKey})})
-    .then(function(r){return r.json();})
+  hubPost({op:"summary",k:HUB.backendKey})
     .then(function(j){
       if(!j || !j.ok) return;
       var moved = false;
@@ -551,8 +565,7 @@ function ensureSW(){
   return navigator.serviceWorker.register("sw.js").then(function(r){ swReg = r; return r; });
 }
 function alertsPost(op, extra){
-  return fetch(HUB.backendUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify(Object.assign({op:op, k:HUB.backendKey}, extra || {}))}).then(function(r){ return r.json(); });
+  return hubPost(Object.assign({op:op, k:HUB.backendKey}, extra || {}));
 }
 function refreshAlerts(){
   var b = document.getElementById("alerts"), hint = document.getElementById("alertsHint");
@@ -611,14 +624,30 @@ function openManageCrew(){
     + '<div class="mm-err" id="mcErr"></div>'
     + '<div id="mcList" class="mm-list"><div class="mm-load">Loading crew…</div></div>');
   mcEl.addEventListener("click", mcClick);
-  hubApi("roster").then(function(r){ if(r && r.ok){ ROSTER = r.people || []; ASSIGN = r.assign || ASSIGN; } paintRoster(); }).catch(function(){ paintRoster(); });
+  loadRoster();
+}
+/* Login codes are only sent by the server to someone who proves the manager/owner code
+   (2026-11-19: they used to come back to any page that asked). MGR_CODE is what was typed
+   at login; after a reload it is empty, so the panel asks for it once to show the codes. */
+var ROSTER_LOCKED = false;
+function loadRoster(){
+  return hubApi("roster", {code:MGR_CODE}).then(function(r){
+    if(r && r.ok){ ROSTER = r.people || []; ASSIGN = r.assign || ASSIGN; ROSTER_LOCKED = !!r.locked; }
+    paintRoster();
+    return r;
+  }).catch(function(){ paintRoster(); });
 }
 function paintRoster(){
   var box = document.getElementById("mcList"); if(!box) return;
   if(!ROSTER.length){ box.innerHTML = '<div class="mm-empty">No crew added yet.</div>'; return; }
-  box.innerHTML = ROSTER.map(function(p){
+  var unlockRow = ROSTER_LOCKED
+    ? '<div class="mm-row"><div style="flex:1;min-width:0"><div class="mm-code">Login codes are hidden. Type your manager code to see them.</div>'
+      + '<input id="mcUnlock" class="mm-in" type="password" placeholder="Manager code" autocomplete="off" style="margin-top:6px;width:100%;box-sizing:border-box"></div>'
+      + '<button class="mm-btn" data-mc="unlock">Show codes</button></div>'
+    : '';
+  box.innerHTML = unlockRow + ROSTER.map(function(p){
     return '<div class="mm-row"><div><div class="mm-name">'+esc(p.name)+'</div>'
-      + '<div class="mm-code">code: <b>'+esc(p.code)+'</b></div></div>'
+      + '<div class="mm-code">code: <b>'+(p.code ? esc(p.code) : '&bull;&bull;&bull;&bull; (hidden)')+'</b></div></div>'
       + '<button class="mm-del" data-mc="del" data-id="'+esc(p.id)+'">Remove</button></div>';
   }).join("");
 }
@@ -626,14 +655,26 @@ function mcClick(e){
   var b = e.target.closest("[data-mc]"); if(!b) return;
   var a = b.dataset.mc;
   if(a === "close"){ mcEl = null; return closeModal(e.currentTarget); }
+  if(a === "unlock"){
+    var u = document.getElementById("mcUnlock"), uerr = document.getElementById("mcErr");
+    var typed = String((u && u.value) || "").trim().toLowerCase();
+    if(!typed){ if(u) u.focus(); return; }
+    uerr.textContent = "Checking…";
+    var before = MGR_CODE; MGR_CODE = typed;
+    loadRoster().then(function(r){
+      if(r && r.ok && !r.locked){ uerr.textContent = ""; }
+      else { MGR_CODE = before; uerr.textContent = (r && r.ok) ? "That isn't the manager code." : "Couldn't reach the server."; }
+    });
+    return;
+  }
   if(a === "add"){
     var name = document.getElementById("mcName").value.trim();
     var code = document.getElementById("mcCode").value.trim();
     var err = document.getElementById("mcErr");
     if(name.length < 2 || code.length < 2){ err.textContent = "Enter a name and a code (2+ characters)."; return; }
     err.textContent = "Adding…";
-    hubApi("addperson", {name:name, code:code}).then(function(r){
-      if(r && r.ok){ ROSTER = r.people || []; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};});
+    hubApi("addperson", {name:name, code:code, auth:MGR_CODE}).then(function(r){
+      if(r && r.ok){ ROSTER = r.people || []; ROSTER_LOCKED = !!r.locked; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};});
         document.getElementById("mcName").value = ""; document.getElementById("mcCode").value = ""; err.textContent = ""; paintRoster(); render(); }
       else err.textContent = (r && r.error) || "Couldn't add.";
     }).catch(function(){ err.textContent = "Couldn't reach the server."; });
@@ -641,8 +682,8 @@ function mcClick(e){
   }
   if(a === "del"){
     var id = b.dataset.id;
-    hubApi("delperson", {id:id}).then(function(r){
-      if(r && r.ok){ ROSTER = r.people || []; ASSIGN = r.assign || ASSIGN; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};}); paintRoster(); render(); }
+    hubApi("delperson", {id:id, auth:MGR_CODE}).then(function(r){
+      if(r && r.ok){ ROSTER = r.people || []; ROSTER_LOCKED = !!r.locked; ASSIGN = r.assign || ASSIGN; PEOPLE = ROSTER.map(function(x){return {id:x.id, n:x.name, name:x.name};}); paintRoster(); render(); }
     }).catch(function(){});
     return;
   }
